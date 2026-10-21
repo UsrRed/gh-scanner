@@ -34,6 +34,7 @@ docker-compose.yml           services app + egress, réseaux internal/outside
 README.md                    FR : installation, variables, menaces, limites, « Ce que ce logiciel envoie et à qui »
 content/
   outbound-disclosure.md     source unique de « Ce que ce logiciel envoie et à qui » (servie par l'UI, recopiée dans le README — test d'égalité)
+  (test/unit/readme.test.ts : égalité README ↔ divulgation, variables documentées)
 prompts/
   VERSION                    version des prompts (ex. 1)
   system.md                  consigne anti-injection, outils, obligation JSON

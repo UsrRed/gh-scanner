@@ -56,3 +56,4 @@
 - 2026-10-21T13:26:13.189Z — T26 terminé (Front: Paramètres (GitHub, Claude) et Connexion)
 - 2026-10-21T13:27:40.317Z — T27 terminé (Câblage front: routes, navigation, intégration finale)
 - 2026-10-21T13:28:41.269Z — T28 terminé (Dockerfile et docker-compose durcis)
+- T29: README.md en français (installation serveur/PC, variables, menaces, limites) + section divulgation recopiée de content/outbound-disclosure.md (test d'égalité test/unit/readme.test.ts). Aucun contrat modifié.
