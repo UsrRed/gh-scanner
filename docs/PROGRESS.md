@@ -53,3 +53,4 @@
 - 2026-10-21T13:22:31.408Z — T24 terminé (Front: Rapport, Historique, Comparaison)
 - 2026-10-21T13:24:15.208Z — T25 terminé (Front: Sorties réseau, Vue par scan, page de divulgation)
 - T26: pages Paramètres/Connexion, XtermConsole, types GhFlow/ClaudeStatus/SettingsView/AuthMe dans shared/api.ts, apiPut, garde d'auth dans App.
+- 2026-10-21T13:26:13.189Z — T26 terminé (Front: Paramètres (GitHub, Claude) et Connexion)
