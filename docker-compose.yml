@@ -1,0 +1,64 @@
+services:
+  app:
+    build: .
+    command: ["node", "dist/index.js"]
+    user: "10001"
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      SCANNER_HOST: 0.0.0.0
+      SCANNER_PORT: "8417"
+      SCANNER_CONTAINER_LOCAL: "1"
+      SCANNER_DATA_DIR: /data
+      SCANNER_WORK_DIR: /data/work
+      SCANNER_EGRESS_URL: http://egress:3128
+      EGRESS_SHARED_DIR: /shared
+    expose:
+      - "8417"
+    volumes:
+      - scanner-data:/data
+      - egress-shared:/shared
+    networks:
+      - internal
+    depends_on:
+      - egress
+
+  egress:
+    build: .
+    command: ["node", "dist/egress.js"]
+    user: "10001"
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      EGRESS_PORT: "3128"
+      EGRESS_HOST: 0.0.0.0
+      EGRESS_SHARED_DIR: /shared
+      EGRESS_APP_URL: http://app:8417
+      EGRESS_INGRESS_PORT: "8417"
+      EGRESS_INGRESS_TARGET: app:8417
+    ports:
+      - "127.0.0.1:8417:8417"
+    volumes:
+      - egress-shared:/shared
+    networks:
+      - internal
+      - outside
+
+networks:
+  internal:
+    internal: true
+  outside: {}
+
+volumes:
+  scanner-data:
+  egress-shared:
