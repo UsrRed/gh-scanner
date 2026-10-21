@@ -55,3 +55,4 @@
 - T26: pages Paramètres/Connexion, XtermConsole, types GhFlow/ClaudeStatus/SettingsView/AuthMe dans shared/api.ts, apiPut, garde d'auth dans App.
 - 2026-10-21T13:26:13.189Z — T26 terminé (Front: Paramètres (GitHub, Claude) et Connexion)
 - 2026-10-21T13:27:40.317Z — T27 terminé (Câblage front: routes, navigation, intégration finale)
+- 2026-10-21T13:28:41.269Z — T28 terminé (Dockerfile et docker-compose durcis)
