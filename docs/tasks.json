@@ -1070,8 +1070,8 @@
         "T29"
       ],
       "phase": "polish",
-      "status": "pending",
-      "commitSha": null,
+      "status": "done",
+      "commitSha": "6ebceb1191bc07030fb1113de39e6795d289d1bb",
       "worktreeDir": null
     }
   ]
