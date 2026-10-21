@@ -30,3 +30,5 @@
 - 2026-10-21T11:20:24.500Z — T14 terminé (Passes d'analyse et pipeline de scan)
 - T15: queue implémentée (server/queue/index.ts). Contrat Queue modifié: createQueue({config,db,broadcast,pipeline?,cloner?}), list()/position()/recover() (remplace recoverOnStartup), ws→broadcast. AppError créé dans server/api/errors.ts.
 - 2026-10-21T11:21:44.328Z — T15 terminé (Module queue: file, concurrence, annulation, reprise)
+
+- T16: module report livré sous forme de fabrique `createReportService({repos, egressLog})` (au lieu de fonctions libres) ; INTERFACES.md mis à jour.

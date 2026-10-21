@@ -246,10 +246,13 @@ export interface ClaudeStatus { mode: 'cli-login'|'api-key'|'none'; cliLoggedIn:
   lastCheck: { state: 'ok'|'not_authenticated'|'error'; message: string; at: string }|null }
 
 // report
-export function buildReport(scanId: string): Report;
-export function compareScans(baseId: string, headId: string): Comparison;   // throws si dépôts différents
-export function exportJson(scanId: string): ExportV1;
-export function exportMarkdown(scanId: string): string;
+export function createReportService(deps: { repos: Repos; egressLog: Pick<EgressLog,'summaryForScan'> }): ReportService;
+interface ReportService {
+  buildReport(scanId: string): Report;
+  compareScans(baseId: string, headId: string): Comparison;   // throws ReportError('different_repos'|'not_found')
+  exportJson(scanId: string): ExportV1;      // Report + schemaVersion:1 + exportedAt, redactDeep
+  exportMarkdown(scanId: string): string;
+}
 
 // ws
 export interface WsHub { broadcast(e: WsEvent): void /* redactDeep */; register(app: FastifyInstance, opts?: { authorize?: (req: FastifyRequest) => boolean }): Promise<void>; clientCount(): number }
