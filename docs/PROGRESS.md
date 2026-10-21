@@ -25,3 +25,4 @@
 - T11: WsHub.register is async with optional authorize; EgressLog gains acknowledge/summaryForScan (INTERFACES updated); ws + @types/ws added as devDeps.
 - 2026-10-21T11:15:31.198Z — T11 terminé (Hub WebSocket et module egress-log)
 - 2026-10-21T11:16:51.161Z — T12 terminé (Analyse locale: détecteurs, extraits, fingerprint, fusion, score)
+- 2026-10-21T11:17:54.418Z — T13 terminé (Prompts versionnés, schémas zod, budget)
