@@ -48,3 +48,4 @@
 - L'app installe un `ProxyAgent` global (purpose `app`): ses propres `fetch` locaux doivent utiliser un `Agent` direct (voir test/integration/startup.test.ts).
 - Fix: `test/web/api-client.test.ts` ne typait pas (bloquait `npm run build`).
 - 2026-10-21T13:17:45.996Z — T21 terminé (Câblage backend: app, index, proxy embarqué, démarrage)
+- 2026-10-21T13:19:03.007Z — T22 terminé (Test e2e complet et test de fuite)
