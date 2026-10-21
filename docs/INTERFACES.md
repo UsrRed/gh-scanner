@@ -386,3 +386,23 @@ egress/spool.jsonl         EgressEvent[] en attente (une ligne JSON par événem
 
 - `test/fixtures/fake-claude.mjs` — scénario lu dans `$HOME/.fake-claude.json` : `{ "scenario": "success"|"forbidden-tool"|"outside-path"|"invalid-json"|"invalid-json-once"|"budget"|"injection"|"not-authenticated"|"quota"|"hang", "network"?: boolean }`. Passe détectée par le marqueur `PASS: <mapping|targeted:<batch>|synthesis>` dans le prompt (stdin). Émet des lignes stream-json : `{"type":"system","subtype":"init",…}`, `{"type":"assistant","message":{"content":[{"type":"tool_use","id","name","input"}],"usage":{…}}}`, `{"type":"user","message":{"content":[{"type":"tool_result","tool_use_id","content"}]}}`, `{"type":"result","subtype":"success","result":"<json>","total_cost_usd":n,"usage":{…}}`. `ping` → réponse courte. Mode PTY : affiche une URL de login, crée `.claude/.credentials.json` sur `/login`.
 - `test/fixtures/fake-gh.mjs` — scénario `$GH_CONFIG_DIR/.fake-gh.json` : `{ "loggedIn": bool, "login": "octo-test", "clone": "ok"|"not_found"|"auth"|"slow"|"huge" }`. Sous-commandes : `repo clone`, `auth login` (imprime `! First copy your one-time code: ABCD-1234` et `https://github.com/login/device`, puis se connecte après ~300 ms), `auth status`, `api user`, `auth logout`, `auth git-credential`.
+
+## 10. db (`server/db`, T03)
+
+```ts
+export interface Db { raw: BetterSqlite3.Database; tx<T>(fn: () => T): T /* imbriqué = rejoint */; close(): void }
+export function openDb(path: string): Db;            // WAL, foreign_keys, migrations auto (schema_migrations)
+export function createRepos(db: Db): Repos;          // server/db/repos/index.ts
+// repos : scans, findings, logs, claudeSessions, outbound, egressEvents, auth, kv  (tout texte persisté passe par redact())
+scans: create({id,repo,ref,keepClone,createdAt?}): Scan /* previousScanId auto */; get(id); update(id, ScanUpdate): Scan|null;
+  meta(id): {justification, partial}|null; delete(id); list({repo?,status?,from?,to?}, page /*1-based*/, pageSize): Page<Scan>;
+  queued(): Scan[]; byStatus(ScanStatus[]): Scan[]
+findings: insertMany(Finding[]); listByScan(scanId) /* tri sévérité */; get(id); deleteByScan(scanId)
+logs: append(scanId, level, message, ts?): {seq,ts,level,message}; list(scanId, after=0, limit=1000)
+claudeSessions: insert(row); finish(id,{usage,status,endedAt?}); listByScan(scanId)
+outbound: insert(OutboundRead); listByScan(scanId); summary(scanId): {files, bytes}
+egressEvents: insertMany(EgressEvent[]) /* id dupliqué ignoré */; list(EgressFilter, page, pageSize): Page<EgressEvent>;
+  totals(f): destinations[]; count(f); lastBlockedAt()
+auth: create/get(id, now?)/delete/purgeExpired/recordLoginAttempt/countLoginAttempts/purgeLoginAttempts
+kv: get(key): string|null; set(key, value); delete(key)
+```

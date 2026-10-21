@@ -4,3 +4,7 @@
 - 2026-10-21T10:42:27.202Z — découpage strictement linéaire — aucune parallélisation possible
 - 2026-10-21T10:59:16.959Z — T01 terminé (Config zod, types partagés, repo-input)
 - 2026-10-21T11:00:20.238Z — T02 terminé (Module redact et logger)
+
+## T03 — db
+- `server/db` : openDb (WAL, migrations v1 idempotentes), repos typés, `createRepos`. Contrat ajouté en INTERFACES §10 (`Db` = `{raw, tx, close}`).
+- Note: `npm rebuild better-sqlite3` requis si le binding natif est absent.
