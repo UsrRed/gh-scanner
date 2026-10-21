@@ -12,7 +12,7 @@ import { log } from '../log.js';
 const GENERIC: Record<number, string> = { 400: 'Bad request', 404: 'Not found', 413: 'Payload too large', 415: 'Unsupported media type' };
 
 /** Uniform `{ error: { code, message } }` for every failure; internal errors never leak message or stack. */
-export function registerErrorHandling(app: FastifyInstance): void {
+export function registerErrorHandling(app: FastifyInstance, opts: { notFound?: (req: FastifyRequest, reply: FastifyReply) => unknown } = {}): void {
   app.setErrorHandler((err: FastifyError | AppError, req: FastifyRequest, reply: FastifyReply) => {
     if (err instanceof AppError) {
       return reply.code(err.status).send({ error: { code: err.code, message: redact(err.message) } });
@@ -24,5 +24,5 @@ export function registerErrorHandling(app: FastifyInstance): void {
     log.error(`internal error ${req.method} ${req.url.split('?')[0]}`, err);
     return reply.code(500).send({ error: { code: 'internal', message: 'Internal server error' } });
   });
-  app.setNotFoundHandler((_req, reply) => reply.code(404).send({ error: { code: 'not_found', message: 'Not found' } }));
+  app.setNotFoundHandler((req, reply) => opts.notFound?.(req, reply) ?? reply.code(404).send({ error: { code: 'not_found', message: 'Not found' } }));
 }

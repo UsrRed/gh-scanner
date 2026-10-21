@@ -41,3 +41,9 @@
 
 - T20: routes `egress.ts`, `internal.ts`, `settings.ts` (server/api/routes); alias `/api/egress` et `/api/egress/ack` ajoutés (INTERFACES.md §4).
 - 2026-10-21T13:14:19.318Z — T20 terminé (API: routes sorties réseau, interne egress, paramètres)
+
+## T21 — Câblage backend
+- `server/app.ts` `buildApp({config, db, egressSecret, webDir?})` → Fastify (+ `app.services {queue, egressLog, gh}`), `server/api/index.ts` `registerApi`, `server/start.ts` `startServer(config)` (séquence de démarrage complète), `server/index.ts` (entrée, umask 077).
+- Contrat modifié: `shared/ws.ts` gagne `settings.gh_login` / `settings.claude` (déjà dans INTERFACES §5); `registerErrorHandling(app, {notFound?})` pour le fallback SPA.
+- L'app installe un `ProxyAgent` global (purpose `app`): ses propres `fetch` locaux doivent utiliser un `Agent` direct (voir test/integration/startup.test.ts).
+- Fix: `test/web/api-client.test.ts` ne typait pas (bloquait `npm run build`).

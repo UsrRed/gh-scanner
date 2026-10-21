@@ -7,7 +7,7 @@ afterEach(() => vi.unstubAllGlobals());
 describe('api client', () => {
   it('throws ApiError with code/message on {error}', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ error: { code: 'not_found', message: 'nope' } }), { status: 404 })));
-    const err = await apiGet('/api/x').catch((e) => e);
+    const err = (await apiGet('/api/x').catch((e: unknown) => e)) as ApiError;
     expect(err).toBeInstanceOf(ApiError);
     expect(err.code).toBe('not_found');
     expect(err.message).toBe('nope');
