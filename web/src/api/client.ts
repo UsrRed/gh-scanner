@@ -12,6 +12,11 @@ export function setCsrfToken(token: string | null): void {
   csrfToken = token;
 }
 
+let unauthorizedHandler: (() => void) | null = null;
+export function setUnauthorizedHandler(h: (() => void) | null): void {
+  unauthorizedHandler = h;
+}
+
 async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
   const headers: Record<string, string> = { Accept: 'application/json' };
   if (method !== 'GET') {
@@ -38,6 +43,7 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
       parsed = null;
     }
   }
+  if (res.status === 401 && path !== '/api/auth/login') unauthorizedHandler?.();
   if (!res.ok) {
     const err = (parsed as Partial<ApiErrorBody> | null)?.error;
     throw new ApiError(err?.code ?? 'internal', err?.message ?? `Erreur HTTP ${res.status}`, res.status);

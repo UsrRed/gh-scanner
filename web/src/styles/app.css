@@ -229,3 +229,4 @@ body{background:var(--paper)}
 .app{border:0;min-height:100vh}
 .main{min-width:0}
 .nav li a .lbl{flex:1}
+.hazard-tape{background:repeating-linear-gradient(-45deg,var(--ink,#111) 0 10px,#F2C200 10px 20px);margin-bottom:16px}

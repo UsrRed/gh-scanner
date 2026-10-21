@@ -36,7 +36,7 @@ export function Nav() {
             <NavLink to={l.to} end={l.end} className={({ isActive }) => (isActive ? 'on' : '')}>
               <span className="lbl">{l.label}</span>
               {l.alerts && blocked > 0 && (
-                <span className="badge" aria-label={`${blocked} connexions bloquées`}>{blocked}</span>
+                <span key={blocked} className="badge" data-testid="nav-badge" aria-label={`${blocked} connexions bloquées`}>{blocked}</span>
               )}
             </NavLink>
           </li>

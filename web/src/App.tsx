@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import type { AuthMe } from '../../shared/api';
-import { apiGet, setCsrfToken } from './api/client';
+import { apiGet, setCsrfToken, setUnauthorizedHandler } from './api/client';
 import { LoginPage } from './pages/LoginPage';
 import { SettingsPage } from './pages/SettingsPage';
-import { Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { AppShell } from './components/AppShell';
 import { NewScanPage } from './pages/NewScanPage';
 import { QueuePage } from './pages/QueuePage';
@@ -13,6 +13,7 @@ import { ComparePage } from './pages/ComparePage';
 import { ScanLivePage } from './pages/ScanLivePage';
 import { EgressPage } from './pages/EgressPage';
 import { ScanOutboundPage } from './pages/ScanOutboundPage';
+import { NotFoundPage } from './pages/NotFoundPage';
 import { DisclosurePage } from './pages/DisclosurePage';
 
 export function App() {
@@ -22,8 +23,19 @@ export function App() {
     apiGet<AuthMe>('/api/auth/me').then((m) => { setCsrfToken(m.csrfToken); setMe(m); },
       () => setMe({ authRequired: false, authenticated: true, csrfToken: null }));
   }, [tick]);
+  const navigate = useNavigate();
+  const location = useLocation();
+  useEffect(() => {
+    setUnauthorizedHandler(() => {
+      setMe((m) => (m && m.authRequired === false ? m : { authRequired: true, authenticated: false, csrfToken: null }));
+    });
+    return () => setUnauthorizedHandler(null);
+  }, []);
   if (!me) return null;
-  if (me.authRequired && !me.authenticated) return <LoginPage onLoggedIn={() => setTick((t) => t + 1)} />;
+  if (me.authRequired && !me.authenticated) {
+    if (location.pathname !== '/login') return <Navigate to="/login" replace />;
+    return <LoginPage onLoggedIn={() => { setTick((t) => t + 1); navigate('/', { replace: true }); }} />;
+  }
   return (
     <AppShell>
       <Routes>
@@ -37,6 +49,8 @@ export function App() {
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/history" element={<HistoryPage />} />
         <Route path="/compare" element={<ComparePage />} />
+        <Route path="/login" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </AppShell>
   );
