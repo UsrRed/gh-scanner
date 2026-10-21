@@ -57,3 +57,4 @@
 - 2026-10-21T13:27:40.317Z — T27 terminé (Câblage front: routes, navigation, intégration finale)
 - 2026-10-21T13:28:41.269Z — T28 terminé (Dockerfile et docker-compose durcis)
 - T29: README.md en français (installation serveur/PC, variables, menaces, limites) + section divulgation recopiée de content/outbound-disclosure.md (test d'égalité test/unit/readme.test.ts). Aucun contrat modifié.
+- 2026-10-21T13:29:41.651Z — T29 terminé (README en français et mise à jour des docs)

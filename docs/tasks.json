@@ -1039,8 +1039,8 @@
         "T22"
       ],
       "phase": "core",
-      "status": "pending",
-      "commitSha": null,
+      "status": "done",
+      "commitSha": "f05847f6fa5d894ae74a4e8cd563a0212835e1bd",
       "worktreeDir": null
     },
     {
