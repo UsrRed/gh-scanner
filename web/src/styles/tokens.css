@@ -1,14 +1,15 @@
 :root{
-  --paper:#F3EFE4; --paper-2:#EAE4D3; --card:#FBF9F3; --ink:#1C1B18; --ink-2:#4A4740; --ink-3:#7A766B;
-  --rule:#D8D0BC; --rule-strong:#B9AF96;
-  --quarantine:#E9B10A; --quarantine-ink:#2A2200;
+  --paper:#F6F7F9; --paper-2:#EDEFF3; --card:#FFFFFF; --ink:#14171F; --ink-2:#454B5A; --ink-3:#697082;
+  --rule:#E4E7EC; --rule-strong:#CDD2DB;
+  --quarantine:#4F5BD5; --quarantine-ink:#fff;
   --crit:#B3261E; --crit-bg:#F6DCD8; --high:#C2541A; --high-bg:#F7E2D2; --med:#8C6E00; --med-bg:#F3E8C4;
-  --low:#2F6488; --low-bg:#DCE7EF; --info:#6E6A60; --info-bg:#E6E2D7;
-  --ok:#2E6B3C; --ok-bg:#DCEBDD; --petrol:#1F4E5F; --petrol-bg:#D7E4E8;
-  --term:#151513; --term-ink:#D9D4C3;
+  --low:#2F6488; --low-bg:#DCE7EF; --info:#5F6676; --info-bg:#E9ECF1;
+  --ok:#2E6B3C; --ok-bg:#DCEBDD; --petrol:#3B47B8; --petrol-bg:#E4E7FA;
+  --term:#12151C; --term-ink:#D9D4C3;
   --mono: ui-monospace,"SFMono-Regular","Cascadia Mono","DejaVu Sans Mono",Menlo,Consolas,monospace;
   --sans: system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
   --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px; --s6:32px; --s7:48px;
+  --r1:6px; --r2:10px; --r3:14px; --sh1:0 1px 2px rgba(16,24,40,.06); --sh2:0 4px 12px rgba(16,24,40,.08); --sh3:0 12px 28px rgba(16,24,40,.12);
 }
 *{box-sizing:border-box}
 html,body{margin:0}

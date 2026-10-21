@@ -63,3 +63,6 @@
 - 2026-10-21T13:40:43.991Z — audit: éléments partiels restants (F6, F15) — voir docs/FEATURE_AUDIT.md
 - 2026-10-21T13:42:20.110Z — vérification finale OK — prêt à déployer
 - 2026-10-21T14:37:42.000Z — `SCANNER_DATA_DIR` : le défaut passe de `/data` à `<app>/data` (résolu en absolu). `npm run start` sur un PC échouait avec `EACCES: permission denied, mkdir '/data'`. L'image Docker fixe toujours `SCANNER_DATA_DIR=/data` (Dockerfile + compose). Contrat mis à jour dans INTERFACES.md.
+
+## T31 — Rafraîchissement visuel
+Style global modernisé (tokens.css + bloc « modern refresh » en fin d'app.css) : polices système, palette sobre à accent unique indigo, rayons/ombres/spacing, boutons primaire/secondaire/fantôme, champs, badges en pilules, tableaux, nav sticky translucide. Aucun changement de structure, de contrat ni de ressource externe.
