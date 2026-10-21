@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gh-scanner — maquette de référence</title>
+<style>
+:root{
+  --paper:#F3EFE4; --paper-2:#EAE4D3; --card:#FBF9F3; --ink:#1C1B18; --ink-2:#4A4740; --ink-3:#7A766B;
+  --rule:#D8D0BC; --rule-strong:#B9AF96;
+  --quarantine:#E9B10A; --quarantine-ink:#2A2200;
+  --crit:#B3261E; --crit-bg:#F6DCD8; --high:#C2541A; --high-bg:#F7E2D2; --med:#8C6E00; --med-bg:#F3E8C4;
+  --low:#2F6488; --low-bg:#DCE7EF; --info:#6E6A60; --info-bg:#E6E2D7;
+  --ok:#2E6B3C; --ok-bg:#DCEBDD; --petrol:#1F4E5F; --petrol-bg:#D7E4E8;
+  --term:#151513; --term-ink:#D9D4C3;
+  --mono: ui-monospace,"SFMono-Regular","Cascadia Mono","DejaVu Sans Mono",Menlo,Consolas,monospace;
+  --sans: system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px; --s6:32px; --s7:48px;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:#DCD5C2;color:var(--ink);font:14px/1.5 var(--sans);-webkit-font-smoothing:antialiased}
+code,.mono{font-family:var(--mono)}
+a{color:var(--petrol)}
+/* ---------- mockup sheet ---------- */
+.sheet-head{max-width:1280px;margin:0 auto;padding:var(--s6) var(--s5) var(--s4)}
+.sheet-head h1{font:700 22px/1.2 var(--mono);letter-spacing:.06em;text-transform:uppercase;margin:0 0 var(--s2)}
+.sheet-head p{margin:0;color:var(--ink-2);max-width:760px}
+.toc{display:flex;flex-wrap:wrap;gap:var(--s2);margin-top:var(--s4);padding:0;list-style:none}
+.toc a{font:12px var(--mono);color:var(--ink);text-decoration:none;border:1px solid var(--rule-strong);padding:2px 8px;background:var(--card)}
+.screen{max-width:1280px;margin:0 auto var(--s7);padding:0 var(--s5)}
+.screen-label{font:700 12px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2);margin-bottom:var(--s2);display:flex;gap:var(--s3);align-items:baseline}
+.screen-label span{font-weight:400;letter-spacing:0;text-transform:none;color:var(--ink-3)}
+/* ---------- app shell ---------- */
+.app{display:grid;grid-template-columns:216px 1fr;background:var(--paper);border:1px solid var(--ink);min-height:560px}
+.nav{background:var(--ink);color:var(--paper);display:flex;flex-direction:column;padding:var(--s4) 0}
+.brand{font:700 15px var(--mono);letter-spacing:.04em;padding:0 var(--s4) var(--s4);border-bottom:1px solid #3a3833;display:flex;align-items:center;gap:var(--s2)}
+.brand-mark{width:18px;height:18px;border:2px solid var(--quarantine);position:relative;flex:none}
+.brand-mark:after{content:"";position:absolute;inset:3px;background:repeating-linear-gradient(-45deg,var(--quarantine) 0 3px,transparent 3px 6px)}
+.nav ul{list-style:none;margin:var(--s3) 0;padding:0;flex:1}
+.nav li a{display:flex;justify-content:space-between;align-items:center;padding:7px var(--s4);color:#CFC9B8;text-decoration:none;font:13px var(--mono);border-left:3px solid transparent}
+.nav li a.on{color:#fff;background:#2A2925;border-left-color:var(--quarantine)}
+.nav .badge{background:var(--crit);color:#fff;font:700 11px var(--mono);padding:0 6px;min-width:18px;text-align:center;animation:blink 1.2s steps(2) 2}
+.nav-foot{padding:var(--s3) var(--s4) 0;border-top:1px solid #3a3833;font:11px/1.7 var(--mono);color:#9E988A}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ok);margin-right:6px;vertical-align:1px}
+.dot.live{box-shadow:0 0 0 0 rgba(46,107,60,.6);animation:pulse 2s infinite}
+.dot.warn{background:var(--quarantine)}
+.dot.bad{background:var(--crit)}
+.main{padding:var(--s5);min-width:0}
+.page-h{display:flex;justify-content:space-between;align-items:flex-end;gap:var(--s4);flex-wrap:wrap;border-bottom:2px solid var(--ink);padding-bottom:var(--s2);margin-bottom:var(--s5)}
+.page-h h2{margin:0;font:700 20px/1.2 var(--mono);text-transform:uppercase;letter-spacing:.05em}
+.page-h .sub{font:12px var(--mono);color:var(--ink-3)}
+h3{font:700 12px var(--mono);text-transform:uppercase;letter-spacing:.1em;margin:0 0 var(--s3);color:var(--ink-2)}
+/* ---------- primitives ---------- */
+.panel{background:var(--card);border:1px solid var(--rule-strong);padding:var(--s4)}
+.panel + .panel{margin-top:var(--s4)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:var(--s4)}
+.grid-main{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:var(--s5)}
+.btn{font:700 12px var(--mono);text-transform:uppercase;letter-spacing:.06em;border:1px solid var(--ink);background:var(--card);color:var(--ink);padding:8px 14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.btn.primary{background:var(--ink);color:var(--paper)}
+.btn.danger{border-color:var(--crit);color:var(--crit)}
+.btn.sm{padding:4px 9px;font-size:11px}
+.btn:focus-visible,.field input:focus-visible{outline:2px solid var(--quarantine);outline-offset:2px}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font:700 11px var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--ink-2)}
+.field input,.field select{font:14px var(--mono);padding:9px 10px;border:1px solid var(--ink);background:#fff;color:var(--ink);border-radius:0;width:100%}
+.field input.err{border-color:var(--crit);background:var(--crit-bg)}
+.hint{font:12px var(--mono);color:var(--ink-3)}
+.hint.err{color:var(--crit)}
+.chip{font:12px var(--mono);border:1px solid var(--rule-strong);padding:2px 8px;background:var(--card);display:inline-flex;gap:6px;align-items:center}
+.chip.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.sev{font:700 11px var(--mono);text-transform:uppercase;letter-spacing:.06em;padding:1px 6px;display:inline-flex;align-items:center;gap:5px;border-left:4px solid}
+.sev.critical{color:var(--crit);background:var(--crit-bg);border-color:var(--crit)}
+.sev.high{color:var(--high);background:var(--high-bg);border-color:var(--high)}
+.sev.medium{color:var(--med);background:var(--med-bg);border-color:var(--med)}
+.sev.low{color:var(--low);background:var(--low-bg);border-color:var(--low)}
+.sev.info{color:var(--info);background:var(--info-bg);border-color:var(--info)}
+.tag{font:11px var(--mono);color:var(--ink-2);border:1px dashed var(--rule-strong);padding:0 5px}
+.tag.local{border-style:solid}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{font:700 11px var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);text-align:left;padding:6px 8px;border-bottom:1px solid var(--ink)}
+td{padding:7px 8px;border-bottom:1px solid var(--rule);vertical-align:top}
+td.num,th.num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
+tr.blocked td{background:#FBEDEA}
+tr.fresh td{animation:fresh 2.4s ease-out}
+.x{color:var(--crit);font-weight:700}
+.ok{color:var(--ok);font-weight:700}
+.bar{height:6px;background:var(--paper-2);position:relative}
+.bar i{position:absolute;inset:0 auto 0 0;background:var(--petrol)}
+.bar.in i{background:var(--rule-strong)}
+.tape{background:repeating-linear-gradient(-45deg,var(--quarantine) 0 14px,var(--ink) 14px 28px);height:10px}
+/* ---------- alert banner ---------- */
+.alert{display:flex;align-items:center;gap:var(--s3);border:1px solid var(--crit);border-left:6px solid var(--crit);background:var(--crit-bg);padding:10px var(--s4);margin-bottom:var(--s5);flex-wrap:wrap}
+.alert .x-mark{font:700 18px var(--mono);color:var(--crit);animation:blink 1s steps(2) 3}
+.alert p{margin:0;flex:1;min-width:220px}
+.alert strong{font-family:var(--mono)}
+/* ---------- live scan ---------- */
+.scan-card{border:1px solid var(--ink);background:var(--card)}
+.scan-card .head{background:var(--ink);color:var(--paper);padding:10px var(--s4);display:flex;justify-content:space-between;gap:var(--s3);flex-wrap:wrap;font:13px var(--mono)}
+.scan-card .head b{color:var(--quarantine);letter-spacing:.08em}
+.scan-card .body{padding:var(--s4)}
+.track{display:grid;grid-template-columns:repeat(6,1fr);margin:var(--s2) 0 var(--s5);counter-reset:st}
+.st{position:relative;padding-top:22px;font:11px/1.35 var(--mono);color:var(--ink-3)}
+.st:before{content:"";position:absolute;top:6px;left:0;right:0;height:2px;background:var(--rule-strong)}
+.st:after{content:"";position:absolute;top:0;left:0;width:14px;height:14px;background:var(--card);border:2px solid var(--rule-strong)}
+.st.done{color:var(--ink)}
+.st.done:before{background:var(--ink)}
+.st.done:after{background:var(--ink);border-color:var(--ink)}
+.st.active{color:var(--ink);font-weight:700}
+.st.active:before{background:linear-gradient(90deg,var(--ink) 50%,var(--rule-strong) 50%)}
+.st.active:after{background:var(--quarantine);border-color:var(--ink);animation:pulse-sq 1.6s infinite}
+.st small{display:block;font-weight:400;color:var(--ink-3)}
+.gauges{display:grid;grid-template-columns:1fr 1fr;gap:var(--s4);margin-bottom:var(--s4)}
+.gauge .lbl{display:flex;justify-content:space-between;font:12px var(--mono);margin-bottom:4px}
+.gauge .meter{height:12px;border:1px solid var(--ink);background:repeating-linear-gradient(90deg,transparent 0 9.5%,var(--rule) 9.5% 10%)}
+.gauge .meter i{display:block;height:100%;background:var(--ink)}
+.gauge.warn .meter i{background:var(--high)}
+.term{background:var(--term);color:var(--term-ink);font:12px/1.65 var(--mono);padding:var(--s3) var(--s4);overflow:auto;max-height:220px}
+.term .t{color:#7E7A6E}
+.term .out{color:#8FC1D1}
+.term .warn{color:#F0C24A}
+.term .bad{color:#F08A7E}
+.term .cursor{display:inline-block;width:7px;height:13px;background:var(--term-ink);vertical-align:-2px;animation:blink 1s steps(2) infinite}
+.queue-row{display:flex;justify-content:space-between;align-items:center;gap:var(--s3);padding:8px 0;border-bottom:1px dashed var(--rule-strong);font:13px var(--mono)}
+.pos{font:700 18px var(--mono);width:36px;height:36px;border:2px solid var(--ink);display:grid;place-items:center;flex:none}
+/* ---------- report ---------- */
+.verdict{display:grid;grid-template-columns:auto 1fr auto;gap:var(--s5);align-items:center;border:1px solid var(--ink);background:var(--card);padding:var(--s5);position:relative;overflow:hidden}
+.stamp{font:800 22px/1.05 var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--crit);border:4px double var(--crit);padding:10px 16px;transform:rotate(-7deg);text-align:center;opacity:.92;background:radial-gradient(circle at 30% 40%,rgba(179,38,30,.06),transparent 60%)}
+.stamp small{display:block;font:700 10px var(--mono);letter-spacing:.14em;margin-top:4px}
+.stamp.caution{color:var(--med);border-color:var(--med)}
+.stamp.trust{color:var(--ok);border-color:var(--ok)}
+.score{font:700 64px/1 var(--mono);font-variant-numeric:tabular-nums}
+.score sub{font-size:18px;color:var(--ink-3);vertical-align:baseline}
+.formula{font:12px var(--mono);color:var(--ink-2);margin-top:6px}
+.justif{font-size:13px;color:var(--ink-2);max-width:520px;margin:6px 0 0}
+.counters{display:grid;grid-template-columns:repeat(5,1fr);border:1px solid var(--ink);border-top:0;margin-bottom:var(--s5)}
+.counters div{padding:10px var(--s3);border-right:1px solid var(--rule-strong);font:11px var(--mono);text-transform:uppercase;letter-spacing:.06em;border-top:4px solid}
+.counters div:last-child{border-right:0}
+.counters b{display:block;font-size:26px;letter-spacing:0;line-height:1.1}
+.c-crit{border-top-color:var(--crit)!important;color:var(--crit)} .c-high{border-top-color:var(--high)!important;color:var(--high)}
+.c-med{border-top-color:var(--med)!important;color:var(--med)} .c-low{border-top-color:var(--low)!important;color:var(--low)} .c-info{border-top-color:var(--info)!important;color:var(--info)}
+.filters{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:var(--s3)}
+.filters .sep{width:1px;height:20px;background:var(--rule-strong);margin:0 4px}
+.finding{border:1px solid var(--rule-strong);background:var(--card);margin-bottom:6px}
+.finding summary,.finding .row{display:grid;grid-template-columns:96px minmax(0,1fr) auto;gap:var(--s3);align-items:center;padding:9px var(--s3);cursor:pointer;list-style:none}
+.finding summary::-webkit-details-marker{display:none}
+.finding .ttl{font-weight:600}
+.finding .loc{font:12px var(--mono);color:var(--petrol)}
+.finding .detail{border-top:1px solid var(--rule);padding:var(--s3) var(--s4) var(--s4);display:grid;gap:var(--s3)}
+.finding .detail h4{margin:0 0 4px;font:700 11px var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3)}
+.finding .detail p{margin:0}
+.finding.crit{border-left:4px solid var(--crit)}
+.finding.high{border-left:4px solid var(--high)}
+.finding.medium{border-left:4px solid var(--med)}
+.finding.low{border-left:4px solid var(--low)}
+pre.snip{margin:0;background:var(--term);color:var(--term-ink);font:12px/1.6 var(--mono);padding:var(--s3) 0;overflow:auto;counter-reset:ln}
+pre.snip span{display:block;padding:0 var(--s4) 0 0}
+pre.snip span:before{counter-increment:ln;content:attr(data-n);display:inline-block;width:44px;padding-right:12px;text-align:right;color:#6A665B}
+pre.snip span.hit{background:rgba(179,38,30,.35)}
+.red{background:#3D2A1F;color:#F0C24A;padding:0 3px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font:12px var(--mono)}
+.kv dt{color:var(--ink-3)} .kv dd{margin:0;text-align:right;font-variant-numeric:tabular-nums}
+.receipt{background:var(--card);border:1px solid var(--rule-strong);position:relative;padding:var(--s4)}
+.receipt:before,.receipt:after{content:"";position:absolute;left:0;right:0;height:8px;background:radial-gradient(circle at 6px 0,var(--paper) 4px,transparent 4.5px) repeat-x;background-size:12px 8px}
+.receipt:before{top:-1px}
+.receipt:after{bottom:-1px;transform:rotate(180deg)}
+/* ---------- frontier ---------- */
+.frontier{display:grid;grid-template-columns:1fr 120px 1.25fr;border:1px solid var(--ink);background:var(--card);margin-bottom:var(--s5)}
+.zone{padding:var(--s4)}
+.zone h3{margin-bottom:var(--s4)}
+.zone.in{background:var(--paper-2)}
+.wall{background:repeating-linear-gradient(180deg,var(--ink) 0 10px,transparent 10px 16px) center/2px 100% no-repeat,var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:var(--s4) 0}
+.wall .gate{background:var(--ink);color:var(--paper);font:700 11px/1.3 var(--mono);text-align:center;padding:8px 6px;letter-spacing:.06em}
+.wall .gate small{display:block;font-weight:400;color:var(--quarantine)}
+.node{border:1px solid var(--ink);background:#fff;padding:8px 10px;margin-bottom:var(--s2);font:12px var(--mono)}
+.node b{display:block;font-size:13px}
+.dest{display:grid;grid-template-columns:1fr auto;gap:2px var(--s3);align-items:center;border:1px solid var(--rule-strong);border-left:4px solid var(--petrol);background:#fff;padding:8px 10px;margin-bottom:var(--s2);font:12px var(--mono);position:relative}
+.dest:before{content:"";position:absolute;left:-34px;top:50%;width:30px;border-top:2px solid var(--petrol)}
+.dest:after{content:"";position:absolute;left:-8px;top:calc(50% - 4px);border:5px solid transparent;border-left-color:var(--petrol)}
+.dest.blk{border-left-color:var(--crit);background:#FBEDEA}
+.dest.blk:before{border-top:2px dashed var(--crit);width:22px;left:-34px}
+.dest.blk:after{border:0;content:"×";color:var(--crit);font:700 16px var(--mono);left:-14px;top:calc(50% - 11px)}
+.dest b{font-size:13px}
+.dest .why{grid-column:1/-1;color:var(--ink-3);font-size:11px}
+.dest .vol{text-align:right;font-variant-numeric:tabular-nums}
+/* ---------- settings ---------- */
+.device{display:flex;gap:6px;margin:var(--s3) 0}
+.device span{font:700 28px var(--mono);width:40px;height:52px;display:grid;place-items:center;border:2px solid var(--ink);background:#fff}
+.device span.dash{border:0;width:16px;background:none}
+.status-line{display:flex;align-items:center;gap:var(--s2);font:13px var(--mono);padding:8px 10px;border:1px solid var(--rule-strong);background:var(--paper)}
+.tabs{display:flex;border-bottom:1px solid var(--ink);margin-bottom:var(--s3)}
+.tabs span{font:700 12px var(--mono);padding:6px 12px;border:1px solid transparent;border-bottom:0;margin-bottom:-1px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em}
+.tabs span.on{border-color:var(--ink);background:var(--card);color:var(--ink)}
+.secret{display:flex;gap:var(--s2);align-items:stretch}
+.secret input{background:var(--paper-2)!important;color:var(--ink-2)!important}
+/* ---------- compare / history ---------- */
+.delta{display:flex;align-items:center;gap:var(--s4);flex-wrap:wrap}
+.delta .score{font-size:44px}
+.arrow{font:700 24px var(--mono);color:var(--ink-3)}
+.up{color:var(--ok);font:700 16px var(--mono)}
+.cmp-cols{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--s4)}
+.cmp-col h3 b{font-size:20px;color:var(--ink);margin-left:6px}
+.cmp-col .item{font-size:13px;padding:7px 0;border-bottom:1px dashed var(--rule-strong);display:flex;gap:8px;align-items:flex-start}
+.cmp-col.resolved .item .ttl{text-decoration:line-through;color:var(--ink-3)}
+.mini-stamp{font:700 10px var(--mono);text-transform:uppercase;border:2px solid;padding:0 4px;letter-spacing:.06em;display:inline-block;transform:rotate(-3deg)}
+.pager{display:flex;justify-content:space-between;align-items:center;margin-top:var(--s3);font:12px var(--mono);color:var(--ink-3)}
+.pager .btns{display:flex;gap:4px}
+/* ---------- states ---------- */
+.states{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--s4)}
+.state{border:1px solid var(--rule-strong);background:var(--card);padding:var(--s5) var(--s4);min-height:250px;display:flex;flex-direction:column}
+.state .lbl{font:700 10px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);margin-bottom:var(--s4)}
+.empty-ledger{flex:1;background:repeating-linear-gradient(180deg,transparent 0 27px,var(--rule) 27px 28px);display:flex;flex-direction:column;justify-content:center;align-items:flex-start;padding:var(--s3) 0}
+.empty-ledger p{margin:0 0 var(--s3);background:var(--card);font-family:var(--mono);font-size:13px}
+.skel{height:14px;margin-bottom:12px;background:linear-gradient(90deg,var(--paper-2) 0 40%,#F7F3E9 50%,var(--paper-2) 60% 100%);background-size:250% 100%;animation:shimmer 1.4s linear infinite}
+.err-box{border:1px solid var(--crit);border-left:6px solid var(--crit);padding:var(--s3);background:var(--crit-bg);font-size:13px}
+.err-box code{display:block;font-size:11px;color:var(--crit);margin-bottom:4px;font-weight:700}
+.ws-pill{display:inline-flex;align-items:center;font:12px var(--mono);border:1px solid var(--rule-strong);padding:3px 10px;background:var(--card)}
+.login{max-width:360px;margin:auto;border:1px solid var(--ink);background:var(--card)}
+.login .in{padding:var(--s5)}
+/* phone */
+.phone{width:380px;max-width:100%;border:10px solid var(--ink);border-radius:22px;overflow:hidden;background:var(--paper)}
+.phone .pbar{background:var(--ink);color:var(--paper);display:flex;justify-content:space-between;padding:8px 12px;font:12px var(--mono)}
+.phone .pbody{padding:var(--s4)}
+.phone-wrap{display:flex;gap:var(--s6);flex-wrap:wrap;align-items:flex-start}
+.phone-notes{flex:1;min-width:260px;font-size:13px;color:var(--ink-2)}
+.phone-notes li{margin-bottom:6px}
+/* motion */
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(46,107,60,.55)}70%{box-shadow:0 0 0 7px rgba(46,107,60,0)}100%{box-shadow:0 0 0 0 rgba(46,107,60,0)}}
+@keyframes pulse-sq{50%{background:var(--card)}}
+@keyframes blink{50%{opacity:0}}
+@keyframes fresh{0%{background:#FFF1B8}100%{background:transparent}}
+@keyframes shimmer{to{background-position:-150% 0}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+/* responsive */
+@media (max-width:980px){
+  .grid-main{grid-template-columns:1fr}
+  .verdict{grid-template-columns:1fr;text-align:left}
+  .stamp{justify-self:start}
+  .states{grid-template-columns:1fr}
+}
+@media (max-width:760px){
+  .app{grid-template-columns:1fr}
+  .nav{flex-direction:row;align-items:center;padding:0;overflow-x:auto}
+  .brand{border:0;padding:10px 12px}
+  .nav ul{display:flex;margin:0}
+  .nav li a{white-space:nowrap;border-left:0;border-bottom:3px solid transparent;padding:12px 10px;gap:6px}
+  .nav li a.on{border-bottom-color:var(--quarantine)}
+  .nav-foot{display:none}
+  .main{padding:var(--s4)}
+  .grid2,.gauges,.cmp-cols{grid-template-columns:1fr}
+  .track{grid-template-columns:repeat(3,1fr);row-gap:var(--s3)}
+  .counters{grid-template-columns:repeat(3,1fr)}
+  .frontier{grid-template-columns:1fr}
+  .wall{background:repeating-linear-gradient(90deg,var(--ink) 0 10px,transparent 10px 16px) center/100% 2px no-repeat,var(--card);padding:var(--s3)}
+  .dest:before,.dest:after{display:none}
+  .finding summary{grid-template-columns:1fr;gap:4px}
+  .hide-m{display:none}
+  .screen{padding:0 var(--s2)}
+}
+</style>
+</head>
+<body>
+
+<header class="sheet-head">
+  <h1>gh-scanner — maquette de référence</h1>
+  <p>Direction « Poste de douane » : le dépôt scanné est une marchandise en quarantaine, le proxy de sortie est la frontière, chaque octet qui sort est déclaré au bordereau. Papier de registre, encre, ruban de quarantaine jaune/noir, tampons d'inspection.</p>
+  <ul class="toc">
+    <li><a href="#s1">01 Nouveau scan &amp; suivi</a></li>
+    <li><a href="#s2">02 Rapport</a></li>
+    <li><a href="#s3">03 Ce qui a quitté la machine</a></li>
+    <li><a href="#s4">04 Sorties réseau</a></li>
+    <li><a href="#s5">05 Paramètres</a></li>
+    <li><a href="#s6">06 Historique &amp; comparaison</a></li>
+    <li><a href="#s7">07 États</a></li>
+    <li><a href="#s8">08 Mobile</a></li>
+  </ul>
+</header>
+
+<!-- ================= 01 ================= -->
+<section class="screen" id="s1">
+  <div class="screen-label">01 · Nouveau scan &amp; suivi en direct <span>F1, F2, F5 budget, F10 alerte</span></div>
+  <div class="app">
+    <nav class="nav">
+      <div class="brand"><span class="brand-mark"></span>gh-scanner</div>
+      <ul>
+        <li><a class="on" href="#s1">Nouveau scan</a></li>
+        <li><a href="#s1">File <span class="mono" style="color:#9E988A">2</span></a></li>
+        <li><a href="#s6">Historique</a></li>
+        <li><a href="#s4">Sorties réseau <span class="badge">2</span></a></li>
+        <li><a href="#s5">Paramètres</a></li>
+        <li><a href="#s4">Ce que j'envoie</a></li>
+      </ul>
+      <div class="nav-foot"><span class="dot live"></span>temps réel connecté<br>écoute 127.0.0.1:8417<br>egress :3128 · 10 hôtes</div>
+    </nav>
+    <main class="main">
+      <div class="alert" role="alert">
+        <span class="x-mark">×</span>
+        <p><b>2 connexions bloquées</b> depuis le dernier acquittement — <strong>statsig.anthropic.com:443</strong> (télémétrie, hors allowlist, réponse 403). Rien n'est sorti.</p>
+        <a class="btn sm" href="#s4">Voir le journal</a>
+        <button class="btn sm danger">Acquitter</button>
+      </div>
+
+      <div class="page-h"><h2>Inspecter un dépôt</h2><span class="sub">Le code n'est jamais exécuté, installé ni buildé.</span></div>
+
+      <div class="panel" style="margin-bottom:var(--s5)">
+        <div style="display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) auto;gap:var(--s3);align-items:end" class="form-row">
+          <div class="field"><label for="repo">Dépôt</label><input id="repo" value="acme/deploy-kit"><span class="hint">owner/repo ou https://github.com/owner/repo</span></div>
+          <div class="field"><label for="ref">Ref (optionnelle)</label><input id="ref" value="v2.3.1"><span class="hint">branche, tag ou SHA</span></div>
+          <div class="field"><button class="btn primary" style="padding:10px 16px">Mettre en quarantaine ▸</button><span class="hint">&nbsp;</span></div>
+        </div>
+        <label style="display:flex;gap:8px;align-items:center;margin-top:var(--s3);font:13px var(--mono)"><input type="checkbox"> conserver le clone après le scan</label>
+        <div class="field" style="margin-top:var(--s4);max-width:520px">
+          <label>Exemple d'entrée refusée</label>
+          <input class="err" value="https://[REDACTED:credentials]@github.com/x/y">
+          <span class="hint err">400 · INVALID_REPO — l'URL contient des identifiants. Utilisez owner/repo et connectez GitHub dans Paramètres.</span>
+        </div>
+      </div>
+
+      <div class="grid-main">
+        <div class="scan-card">
+          <div class="tape"></div>
+          <div class="head"><span><b>EN QUARANTAINE</b> · acme/deploy-kit @ v2.3.1</span><span>scan #0142 · démarré 14:02:11</span></div>
+          <div class="body">
+            <div class="track">
+              <div class="st done">queued<small>0 s</small></div>
+              <div class="st done">cloning<small>3,1 s · 4,8 Mo</small></div>
+              <div class="st done">mapping<small>Sonnet 5.5 · 41 s</small></div>
+              <div class="st active">analyzing<small>lot 3 / 5 · CI/CD</small></div>
+              <div class="st">synthesizing<small>Opus 5.5</small></div>
+              <div class="st">done</div>
+            </div>
+            <div class="gauges">
+              <div class="gauge"><div class="lbl"><span>Coût</span><span>0,84 $ / 2,00 $</span></div><div class="meter"><i style="width:42%"></i></div></div>
+              <div class="gauge"><div class="lbl"><span>Tokens</span><span>612 k / 1,5 M</span></div><div class="meter"><i style="width:41%"></i></div></div>
+            </div>
+            <div class="term" aria-live="polite">
+<div><span class="t">14:03:52</span> pass2/ci   tool_use Glob   <span class="out">.github/workflows/*.yml</span> → 3 chemins</div>
+<div><span class="t">14:03:53</span> pass2/ci   tool_use Read   <span class="out">.github/workflows/pr.yml:1-64</span> → 2,1 Ko ↑ anthropic</div>
+<div><span class="t">14:03:55</span> pass2/ci   tool_use Grep   <span class="out">"github.event.pull_request" in .github/</span> → 4 lignes</div>
+<div><span class="t">14:03:58</span> <span class="warn">local     pull_request_target + checkout head détecté</span></div>
+<div><span class="t">14:04:01</span> pass2/ci   usage  in 18 204 · out 1 122 · cache 9 870</div>
+<div><span class="t">14:04:02</span> pass2/inst tool_use Read   <span class="out">package.json</span> → 1,4 Ko ↑ anthropic</div>
+<div><span class="t">14:04:04</span> <span class="bad">egress    statsig.anthropic.com:443 bloqué (403)</span></div>
+<div><span class="t">14:04:05</span> pass2/inst tool_use Read   <span class="out">scripts/postinstall.js</span> <span class="cursor"></span></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:var(--s3);gap:var(--s3);flex-wrap:wrap">
+              <span class="hint">Outils autorisés : Read · Grep · Glob — limités à &lt;repo&gt;/</span>
+              <button class="btn danger sm">Annuler le scan</button>
+            </div>
+          </div>
+        </div>
+        <aside>
+          <div class="panel">
+            <h3>File d'attente · concurrence 1</h3>
+            <div class="queue-row"><span class="pos">1</span><span style="flex:1">octo/cli-helper<br><span class="hint">main · ajouté 14:03</span></span><button class="btn sm">Retirer</button></div>
+            <div class="queue-row" style="border:0"><span class="pos">2</span><span style="flex:1">acme/deploy-kit<br><span class="hint">re-scan · 3f9e2c1</span></span><button class="btn sm">Retirer</button></div>
+          </div>
+          <div class="panel">
+            <h3>Sorties de ce scan, en direct</h3>
+            <dl class="kv">
+              <dt>api.anthropic.com</dt><dd>38,4 Ko ↑ · 7 conn.</dd>
+              <dt>github.com</dt><dd>1,2 Ko ↑ · 2 conn.</dd>
+              <dt>codeload.github.com</dt><dd>0,6 Ko ↑ · 1 conn.</dd>
+              <dt style="color:var(--crit)">bloquées</dt><dd style="color:var(--crit)">2</dd>
+            </dl>
+            <a class="btn sm" style="margin-top:var(--s3)" href="#s3">Bordereau détaillé ▸</a>
+          </div>
+        </aside>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- ================= 02 ================= -->
+<section class="screen" id="s2">
+  <div class="screen-label">02 · Rapport <span>F5 score &amp; verdict, F6 findings, F9 résumé</span></div>
+  <div class="app">
+    <nav class="nav">
+      <div class="brand"><span class="brand-mark"></span>gh-scanner</div>
+      <ul>
+        <li><a href="#s1">Nouveau scan</a></li>
+        <li><a href="#s1">File</a></li>
+        <li><a class="on" href="#s6">Historique</a></li>
+        <li><a href="#s4">Sorties réseau <span class="badge">2</span></a></li>
+        <li><a href="#s5">Paramètres</a></li>
+        <li><a href="#s4">Ce que j'envoie</a></li>
+      </ul>
+      <div class="nav-foot"><span class="dot live"></span>temps réel connecté<br>écoute 127.0.0.1:8417</div>
+    </nav>
+    <main class="main">
+      <div class="page-h">
+        <div><h2>acme/deploy-kit</h2><span class="sub">v2.3.1 · 9c41a07 · scan #0142 · 21 oct. 2026 14:06 · 4 min 12 s</span></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap"><a class="btn sm" href="#s6">Comparer</a><button class="btn sm">Re-scanner</button><button class="btn sm">Export .md</button><button class="btn sm">Export .json</button></div>
+      </div>
+
+      <div class="verdict">
+        <div class="stamp">Ne pas<br>installer<small>inspecté · #0142</small></div>
+        <div>
+          <div class="score">21<sub>/100</sub></div>
+          <div class="formula">100 − 40×1 crit. − 15×2 élev. − 5×1 moy. − 1×4 faible = 21</div>
+          <p class="justif"><b>Verdict Claude : do-not-install.</b> Un script postinstall télécharge et évalue du code distant, un secret AWS est commité, et le workflow PR exécute du code non fiable avec un jeton en écriture. Le README tente de détourner l'analyse.</p>
+        </div>
+        <div class="hide-m" style="font:11px/1.7 var(--mono);color:var(--ink-3);text-align:right">synthèse : Opus 5.5<br>analyse : Sonnet 5.5<br>14 fichiers transmis<br>48,2 Ko ↑ Anthropic</div>
+      </div>
+      <div class="counters">
+        <div class="c-crit"><b>1</b>critique</div>
+        <div class="c-high"><b>2</b>élevée</div>
+        <div class="c-med"><b>1</b>moyenne</div>
+        <div class="c-low"><b>4</b>faible</div>
+        <div class="c-info"><b>3</b>info</div>
+      </div>
+
+      <div class="grid-main">
+        <div>
+          <div class="filters">
+            <span class="chip on">Toutes · 11</span><span class="chip">critique</span><span class="chip">élevée</span><span class="chip">moyenne</span><span class="chip">faible</span><span class="chip">info</span>
+            <span class="sep"></span>
+            <span class="chip on">catégorie : toutes ▾</span><span class="chip">source : claude + local ▾</span>
+          </div>
+
+          <details class="finding crit" open>
+            <summary><span class="sev critical">■ critique</span><span><span class="ttl">Clé d'accès AWS commitée</span><br><span class="loc">config/deploy.env:12</span></span><span><span class="tag">secrets</span> <span class="tag local">local</span> <span class="tag">claude</span></span></summary>
+            <div class="detail">
+<pre class="snip"><span data-n="10"># deploy target</span><span data-n="11">AWS_REGION=eu-west-3</span><span data-n="12" class="hit">AWS_ACCESS_KEY_ID=<b class="red">AKIA…</b></span><span data-n="13">AWS_SECRET_ACCESS_KEY=<b class="red">wJal…</b></span><span data-n="14">BUCKET=releases</span></pre>
+              <div class="grid2">
+                <div><h4>Explication</h4><p>Une paire de clés AWS au format valide est présente dans l'historique. Toute personne clonant le dépôt peut l'utiliser.</p></div>
+                <div><h4>Correctif</h4><p>Révoquer la clé, la retirer de l'historique, charger les identifiants depuis l'environnement d'exécution.</p></div>
+              </div>
+              <div class="hint">fingerprint 7b1e…c02a · règle aws-access-key · secrets tronqués à 4 caractères</div>
+            </div>
+          </details>
+
+          <details class="finding high">
+            <summary><span class="sev high">■ élevée</span><span><span class="ttl">pull_request_target avec checkout de la PR</span><br><span class="loc">.github/workflows/pr.yml:8</span></span><span><span class="tag">ci-cd</span> <span class="tag local">local</span></span></summary>
+          </details>
+          <details class="finding high">
+            <summary><span class="sev high">■ élevée</span><span><span class="ttl">postinstall télécharge et exécute un script distant</span><br><span class="loc">scripts/postinstall.js:3</span></span><span><span class="tag">install-scripts</span> <span class="tag">claude</span></span></summary>
+          </details>
+          <details class="finding medium">
+            <summary><span class="sev medium">■ moyenne</span><span><span class="ttl">Tentative d'injection de prompt dans le README</span><br><span class="loc">README.md:88</span></span><span><span class="tag">prompt-injection</span> <span class="tag">claude</span></span></summary>
+          </details>
+          <details class="finding low">
+            <summary><span class="sev low">■ faible</span><span><span class="ttl">Actions non épinglées par SHA</span><br><span class="loc">.github/workflows/release.yml:21</span></span><span><span class="tag">ci-cd</span> <span class="tag">claude</span></span></summary>
+          </details>
+          <div class="pager"><span>5 sur 11 affichés</span><span class="btns"><button class="btn sm">‹</button><button class="btn sm">1</button><button class="btn sm">2</button><button class="btn sm">3</button><button class="btn sm">›</button></span></div>
+        </div>
+
+        <aside>
+          <div class="panel">
+            <h3>Consommation</h3>
+            <table>
+              <thead><tr><th>Passe</th><th class="num">in</th><th class="num">out</th><th class="num">cache</th><th class="num">$</th></tr></thead>
+              <tbody>
+                <tr><td class="mono">1 · carto</td><td class="num">142k</td><td class="num">6k</td><td class="num">38k</td><td class="num">0,31</td></tr>
+                <tr><td class="mono">2 · ciblée</td><td class="num">398k</td><td class="num">14k</td><td class="num">121k</td><td class="num">0,77</td></tr>
+                <tr><td class="mono">3 · synthèse</td><td class="num">61k</td><td class="num">4k</td><td class="num">0</td><td class="num">0,52</td></tr>
+                <tr><td class="mono"><b>Total</b></td><td class="num"><b>601k</b></td><td class="num"><b>24k</b></td><td class="num"><b>159k</b></td><td class="num"><b>1,60</b></td></tr>
+              </tbody>
+            </table>
+            <div class="gauge" style="margin-top:var(--s3)"><div class="lbl"><span>budget</span><span>1,60 / 2,00 $</span></div><div class="meter"><i style="width:80%"></i></div></div>
+          </div>
+          <div class="receipt" style="margin-top:var(--s4)">
+            <h3>Récapitulatif des sorties</h3>
+            <dl class="kv">
+              <dt>fichiers transmis</dt><dd>14</dd>
+              <dt>octets → Anthropic</dt><dd>48,2 Ko</dd>
+              <dt>connexions Anthropic</dt><dd>9</dd>
+              <dt>connexions GitHub</dt><dd>3</dd>
+              <dt style="color:var(--crit)">bloquées</dt><dd style="color:var(--crit)">2</dd>
+            </dl>
+            <a class="btn sm" href="#s3" style="margin-top:var(--s3)">Ce qui a quitté la machine ▸</a>
+          </div>
+        </aside>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- ================= 03 ================= -->
+<section class="screen" id="s3">
+  <div class="screen-label">03 · Ce qui a quitté la machine pour ce scan <span>F9 — la frontière</span></div>
+  <div class="app">
+    <nav class="nav">
+      <div class="brand"><span class="brand-mark"></span>gh-scanner</div>
+      <ul>
+        <li><a href="#s1">Nouveau scan</a></li>
+        <li><a href="#s1">File</a></li>
+        <li><a class="on" href="#s6">Historique</a></li>
+        <li><a href="#s4">Sorties réseau <span class="badge">2</span></a></li>
+        <li><a href="#s5">Paramètres</a></li>
+        <li><a href="#s4">Ce que j'envoie</a></li>
+      </ul>
+      <div class="nav-foot"><span class="dot live"></span>temps réel connecté</div>
+    </nav>
+    <main class="main">
+      <div class="page-h"><div><h2>Bordereau de sortie</h2><span class="sub">acme/deploy-kit · scan #0142 · données issues du proxy egress et du flux Claude</span></div><a class="btn sm" href="#s2">‹ Rapport</a></div>
+
+      <div class="frontier">
+        <div class="zone in">
+          <h3>Cette machine</h3>
+          <div class="node"><b>&lt;repo&gt;/</b>clone jetable · 4,8 Mo · supprimé 14:06:24</div>
+          <div class="node"><b>prompts masqués</b>3 passes · 9 sessions · 21,7 Ko</div>
+          <div class="node"><b>tool_result</b>14 fichiers lus · 26,5 Ko</div>
+          <p class="hint" style="margin:var(--s3) 0 0">Masqués avant envoi : chemins → &lt;repo&gt;/ &lt;data&gt;, hôte, utilisateur, IP, tokens.</p>
+        </div>
+        <div class="wall"><div class="gate">EGRESS<small>:3128</small><small>allowlist</small><small>10 hôtes</small></div></div>
+        <div class="zone">
+          <h3>Extérieur</h3>
+          <div class="dest"><b>api.anthropic.com</b><span class="vol">48,2 Ko ↑ · 311 Ko ↓</span><span class="why">scan:0142:claude · 9 connexions · Sonnet 5.5, Opus 5.5</span></div>
+          <div class="dest"><b>github.com</b><span class="vol">1,2 Ko ↑ · 18 Ko ↓</span><span class="why">scan:0142:clone · 2 connexions</span></div>
+          <div class="dest"><b>codeload.github.com</b><span class="vol">0,6 Ko ↑ · 4,8 Mo ↓</span><span class="why">scan:0142:clone · 1 connexion</span></div>
+          <div class="dest blk"><b>statsig.anthropic.com</b><span class="vol" style="color:var(--crit)">0 o ↑ · bloqué</span><span class="why">scan:0142:claude · 2 tentatives · hors allowlist → 403</span></div>
+        </div>
+      </div>
+
+      <div class="grid-main">
+        <div class="panel">
+          <h3>Fichiers transmis à Claude · 14</h3>
+          <table>
+            <thead><tr><th>Fichier</th><th class="hide-m">Passe · outil</th><th class="hide-m">Lignes / motif</th><th class="num">Octets</th><th style="width:22%"></th></tr></thead>
+            <tbody>
+              <tr><td class="mono">README.md</td><td class="mono hide-m">1 · Read</td><td class="mono hide-m">1-140</td><td class="num">6 212</td><td><div class="bar"><i style="width:100%"></i></div></td></tr>
+              <tr><td class="mono">scripts/postinstall.js</td><td class="mono hide-m">2e · Read</td><td class="mono hide-m">1-41</td><td class="num">1 604</td><td><div class="bar"><i style="width:26%"></i></div></td></tr>
+              <tr><td class="mono">.github/workflows/pr.yml</td><td class="mono hide-m">2d · Read</td><td class="mono hide-m">1-64</td><td class="num">2 118</td><td><div class="bar"><i style="width:34%"></i></div></td></tr>
+              <tr><td class="mono">src/**/*.ts</td><td class="mono hide-m">2b · Grep</td><td class="mono hide-m">"eval\(|new Function"</td><td class="num">418</td><td><div class="bar"><i style="width:7%"></i></div></td></tr>
+              <tr><td class="mono">config/deploy.env</td><td class="mono hide-m">2a · Read</td><td class="mono hide-m">1-20</td><td class="num">512</td><td><div class="bar"><i style="width:8%"></i></div></td></tr>
+            </tbody>
+          </table>
+          <details style="margin-top:var(--s3)" open>
+            <summary class="mono" style="cursor:pointer;font-size:12px">▾ extrait transmis · config/deploy.env (tel qu'envoyé, après masquage)</summary>
+<pre class="snip" style="margin-top:var(--s2)"><span data-n="11">AWS_REGION=eu-west-3</span><span data-n="12">AWS_ACCESS_KEY_ID=<b class="red">[REDACTED:aws-key]</b></span><span data-n="13">AWS_SECRET_ACCESS_KEY=<b class="red">[REDACTED:secret]</b></span></pre>
+          </details>
+          <div class="pager"><span>5 sur 14</span><span class="btns"><button class="btn sm">‹</button><button class="btn sm">›</button></span></div>
+        </div>
+        <aside class="panel">
+          <h3>Sessions Claude</h3>
+          <table>
+            <thead><tr><th>Passe</th><th>Modèle</th><th class="num">Prompt</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">1</td><td class="mono">sonnet-5-5</td><td class="num">9,4 Ko</td></tr>
+              <tr><td class="mono">2a–2g</td><td class="mono">sonnet-5-5 ×7</td><td class="num">8,1 Ko</td></tr>
+              <tr><td class="mono">3</td><td class="mono">opus-5-5</td><td class="num">4,2 Ko</td></tr>
+            </tbody>
+          </table>
+          <p class="hint" style="margin-top:var(--s3)">Le proxy ne déchiffre pas le TLS : le contenu ci-contre est tracé côté application, les volumes par le proxy.</p>
+        </aside>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- ================= 04 ================= -->
+<section class="screen" id="s4">
+  <div class="screen-label">04 · Sorties réseau <span>F8, F10 — journal en direct, totaux, alertes</span></div>
+  <div class="app">
+    <nav class="nav">
+      <div class="brand"><span class="brand-mark"></span>gh-scanner</div>
+      <ul>
+        <li><a href="#s1">Nouveau scan</a></li>
+        <li><a href="#s1">File</a></li>
+        <li><a href="#s6">Historique</a></li>
+        <li><a class="on" href="#s4">Sorties réseau <span class="badge">2</span></a></li>
+        <li><a href="#s5">Paramètres</a></li>
+        <li><a href="#s4">Ce que j'envoie</a></li>
+      </ul>
+      <div class="nav-foot"><span class="dot live"></span>temps réel connecté</div>
+    </nav>
+    <main class="main">
+      <div class="page-h"><div><h2>Sorties réseau</h2><span class="sub">seul point de sortie : egress:3128 · correspondance exacte d'hôte, port 443 uniquement</span></div><a class="btn sm" href="#s4">Ce que ce logiciel envoie et à qui</a></div>
+
+      <div class="alert"><span class="x-mark">×</span><p><b>2 tentatives bloquées</b> vers <strong>statsig.anthropic.com</strong> — preuve que la télémétrie ne sort pas.</p><button class="btn sm danger">Acquitter</button></div>
+
+      <h3>Totaux par destination · 7 derniers jours</h3>
+      <table class="panel" style="padding:0;margin-bottom:var(--s5)">
+        <thead><tr><th>Destination</th><th class="num">Conn.</th><th class="num">Envoyé</th><th class="num">Reçu</th><th class="hide-m" style="width:30%">Volume envoyé</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">api.anthropic.com</td><td class="num">61</td><td class="num">402 Ko</td><td class="num">2,6 Mo</td><td class="hide-m"><div class="bar"><i style="width:100%"></i></div></td></tr>
+          <tr><td class="mono">github.com</td><td class="num">18</td><td class="num">11 Ko</td><td class="num">140 Ko</td><td class="hide-m"><div class="bar"><i style="width:3%"></i></div></td></tr>
+          <tr><td class="mono">codeload.github.com</td><td class="num">9</td><td class="num">5 Ko</td><td class="num">31 Mo</td><td class="hide-m"><div class="bar"><i style="width:2%"></i></div></td></tr>
+          <tr><td class="mono">api.github.com</td><td class="num">4</td><td class="num">3 Ko</td><td class="num">12 Ko</td><td class="hide-m"><div class="bar"><i style="width:1%"></i></div></td></tr>
+          <tr class="blocked"><td class="mono"><span class="x">×</span> statsig.anthropic.com</td><td class="num">2</td><td class="num">0 o</td><td class="num">0 o</td><td class="hide-m mono" style="color:var(--crit);font-size:12px">bloqué · 403</td></tr>
+        </tbody>
+      </table>
+
+      <div class="filters">
+        <span class="chip">destination : toutes ▾</span><span class="chip">finalité : toutes ▾</span><span class="chip">scan : tous ▾</span><span class="chip on">statut : autorisé + bloqué</span><span class="chip">période : 24 h ▾</span>
+        <span class="sep"></span><span class="ws-pill"><span class="dot live"></span>en direct</span>
+      </div>
+      <div class="panel" style="padding:0;overflow:auto">
+      <table>
+        <thead><tr><th>Heure</th><th>Destination</th><th>Finalité</th><th class="num">↑</th><th class="num">↓</th><th class="num hide-m">Durée</th><th>Statut</th><th class="hide-m">Pourquoi</th></tr></thead>
+        <tbody>
+          <tr class="fresh"><td class="mono">14:04:05</td><td class="mono">api.anthropic.com:443</td><td class="mono">scan:0142:claude</td><td class="num">6,1 Ko</td><td class="num">38 Ko</td><td class="num hide-m">2,4 s</td><td><span class="ok">✓</span> autorisé</td><td class="hint hide-m">allowlist · hôte exact</td></tr>
+          <tr class="blocked"><td class="mono">14:04:04</td><td class="mono">statsig.anthropic.com:443</td><td class="mono">scan:0142:claude</td><td class="num">0</td><td class="num">0</td><td class="num hide-m">2 ms</td><td><span class="x">×</span> bloqué</td><td class="hint hide-m" style="color:var(--crit)">hors allowlist → 403</td></tr>
+          <tr><td class="mono">14:02:12</td><td class="mono">codeload.github.com:443</td><td class="mono">scan:0142:clone</td><td class="num">0,6 Ko</td><td class="num">4,8 Mo</td><td class="num hide-m">2,9 s</td><td><span class="ok">✓</span> autorisé</td><td class="hint hide-m">allowlist · hôte exact</td></tr>
+          <tr><td class="mono">14:02:11</td><td class="mono">github.com:443</td><td class="mono">scan:0142:clone</td><td class="num">1,2 Ko</td><td class="num">18 Ko</td><td class="num hide-m">0,4 s</td><td><span class="ok">✓</span> autorisé</td><td class="hint hide-m">allowlist · hôte exact</td></tr>
+          <tr><td class="mono">13:51:40</td><td class="mono">api.github.com:443</td><td class="mono">settings:gh-status</td><td class="num">0,7 Ko</td><td class="num">3 Ko</td><td class="num hide-m">0,3 s</td><td><span class="ok">✓</span> autorisé</td><td class="hint hide-m">allowlist · hôte exact</td></tr>
+          <tr class="blocked"><td class="mono">13:12:02</td><td class="mono">example-cdn.net:80</td><td class="mono">hôte (repli)</td><td class="num">0</td><td class="num">0</td><td class="num hide-m">1 ms</td><td><span class="x">×</span> bloqué</td><td class="hint hide-m" style="color:var(--crit)">port ≠ 443 → 403</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <div class="pager"><span>1–6 sur 94</span><span class="btns"><button class="btn sm">‹</button><button class="btn sm">›</button></span></div>
+    </main>
+  </div>
+</section>
+
+<!-- ================= 05 ================= -->
+<section class="screen" id="s5">
+  <div class="screen-label">05 · Paramètres <span>F11 GitHub device flow, F12 Claude console / clé API, F13 exposition</span></div>
+  <div class="app">
+    <nav class="nav">
+      <div class="brand"><span class="brand-mark"></span>gh-scanner</div>
+      <ul>
+        <li><a href="#s1">Nouveau scan</a></li>
+        <li><a href="#s1">File</a></li>
+        <li><a href="#s6">Historique</a></li>
+        <li><a href="#s4">Sorties réseau</a></li>
+        <li><a class="on" href="#s5">Paramètres</a></li>
+        <li><a href="#s4">Ce que j'envoie</a></li>
+      </ul>
+      <div class="nav-foot"><span class="dot live"></span>temps réel connecté</div>
+    </nav>
+    <main class="main">
+      <div class="page-h"><h2>Paramètres</h2><span class="sub">Aucun secret n'est jamais réaffiché · stockage &lt;data&gt; en 600</span></div>
+      <div class="grid2">
+        <div class="panel">
+          <h3>GitHub</h3>
+          <div class="status-line"><span class="dot warn"></span>en attente de validation · expire dans 14:12</div>
+          <p style="margin:var(--s4) 0 0">Ouvrez <a class="mono" href="#s5">https://github.com/login/device</a> sur n'importe quel appareil et saisissez :</p>
+          <div class="device" aria-label="code 8F3K-Q2WX"><span>8</span><span>F</span><span>3</span><span>K</span><span class="dash">–</span><span>Q</span><span>2</span><span>W</span><span>X</span></div>
+          <p class="hint">Aucun navigateur n'est ouvert sur le serveur. Trafic : settings:gh-login → github.com.</p>
+          <div style="display:flex;gap:6px;margin-top:var(--s3)"><button class="btn sm">Copier le code</button><button class="btn sm danger">Annuler</button></div>
+          <hr style="border:0;border-top:1px dashed var(--rule-strong);margin:var(--s4) 0">
+          <div class="status-line"><span class="dot"></span>connecté · <b>@dev-alice</b> · scopes repo, read:org</div>
+          <p class="hint" style="margin-top:6px">État après connexion (gh auth status, sans --show-token).</p>
+          <button class="btn sm" style="margin-top:var(--s2)">Se déconnecter</button>
+        </div>
+        <div class="panel">
+          <h3>Claude</h3>
+          <div class="tabs"><span class="on">A · Login CLI</span><span>B · Clé API</span></div>
+          <div class="term" style="max-height:none">
+<div><span class="t">claude</span> HOME=&lt;data&gt;/claude-home</div>
+<div>&gt; /login</div>
+<div class="out">Open this URL to sign in:</div>
+<div class="out">https://claude.ai/oauth/authorize?code=…</div>
+<div class="warn">Paste code here if prompted &gt; <span class="cursor"></span></div>
+          </div>
+          <p class="hint">Console fermée automatiquement après connexion ou au bout de 15 min.</p>
+          <hr style="border:0;border-top:1px dashed var(--rule-strong);margin:var(--s4) 0">
+          <div class="field"><label>Clé API (option B)</label>
+            <div class="secret"><input readonly value="sk-ant-…3f9a"><button class="btn sm danger">Supprimer</button></div>
+            <span class="hint">lecture seule après enregistrement</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:var(--s3);margin-top:var(--s4);flex-wrap:wrap">
+            <button class="btn sm">Revérifier</button>
+            <span class="status-line" style="flex:1"><span class="dot"></span>opérationnel · ping 1,2 s · haiku-5-5</span>
+          </div>
+        </div>
+      </div>
+      <div class="panel" style="margin-top:var(--s4)">
+        <h3>Exposition</h3>
+        <dl class="kv" style="max-width:520px">
+          <dt>écoute</dt><dd>127.0.0.1:8417 (local)</dd>
+          <dt>authentification</dt><dd>optionnelle · mot de passe non défini</dd>
+          <dt>proxy de sortie</dt><dd>egress:3128 · 10 hôtes autorisés</dd>
+          <dt>télémétrie</dt><dd>désactivée · DO_NOT_TRACK=1</dd>
+        </dl>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- ================= 06 ================= -->
+<section class="screen" id="s6">
+  <div class="screen-label">06 · Historique &amp; comparaison <span>F6 — UC3 re-scan</span></div>
+  <div class="app">
+    <nav class="nav">
+      <div class="brand"><span class="brand-mark"></span>gh-scanner</div>
+      <ul>
+        <li><a href="#s1">Nouveau scan</a></li>
+        <li><a href="#s1">File</a></li>
+        <li><a class="on" href="#s6">Historique</a></li>
+        <li><a href="#s4">Sorties réseau</a></li>
+        <li><a href="#s5">Paramètres</a></li>
+        <li><a href="#s4">Ce que j'envoie</a></li>
+      </ul>
+      <div class="nav-foot"><span class="dot live"></span>temps réel connecté</div>
+    </nav>
+    <main class="main">
+      <div class="page-h"><h2>Historique</h2><span class="sub">38 scans</span></div>
+      <div class="filters"><span class="chip">dépôt : acme/deploy-kit ▾</span><span class="chip">statut : tous ▾</span><span class="chip">période : 30 j ▾</span></div>
+      <div class="panel" style="padding:0;overflow:auto;margin-bottom:var(--s5)">
+      <table>
+        <thead><tr><th style="width:28px"></th><th>Scan</th><th>Dépôt · ref</th><th>Statut</th><th>Verdict</th><th class="num">Score</th><th class="num hide-m">Coût</th><th class="hide-m">Date</th></tr></thead>
+        <tbody>
+          <tr><td><input type="checkbox" checked aria-label="sélection"></td><td class="mono">#0157</td><td class="mono">acme/deploy-kit · v2.4.0</td><td class="mono">done</td><td><span class="mini-stamp" style="color:var(--med)">prudence</span></td><td class="num">68</td><td class="num hide-m">1,42 $</td><td class="mono hide-m">21/10 16:40</td></tr>
+          <tr><td><input type="checkbox" checked aria-label="sélection"></td><td class="mono">#0142</td><td class="mono">acme/deploy-kit · v2.3.1</td><td class="mono">done</td><td><span class="mini-stamp" style="color:var(--crit)">ne pas installer</span></td><td class="num">21</td><td class="num hide-m">1,60 $</td><td class="mono hide-m">21/10 14:06</td></tr>
+          <tr><td><input type="checkbox" aria-label="sélection"></td><td class="mono">#0139</td><td class="mono">octo/cli-helper · main</td><td class="mono" style="color:var(--high)">budget_exceeded</td><td><span class="hint">rapport partiel</span></td><td class="num">54</td><td class="num hide-m">2,00 $</td><td class="mono hide-m">20/10 09:12</td></tr>
+          <tr><td><input type="checkbox" aria-label="sélection"></td><td class="mono">#0131</td><td class="mono">tiny/left-pad · 1.3.0</td><td class="mono">done</td><td><span class="mini-stamp" style="color:var(--ok)">confiance</span></td><td class="num">97</td><td class="num hide-m">0,38 $</td><td class="mono hide-m">18/10 11:30</td></tr>
+          <tr><td><input type="checkbox" aria-label="sélection"></td><td class="mono">#0130</td><td class="mono">foo/bar · main</td><td class="mono" style="color:var(--crit)">failed</td><td><span class="hint">interrompu (redémarrage)</span></td><td class="num">—</td><td class="num hide-m">0,12 $</td><td class="mono hide-m">18/10 11:02</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <div class="panel">
+        <h3>Comparaison · #0142 → #0157</h3>
+        <div class="delta" style="margin-bottom:var(--s4)">
+          <span class="score" style="color:var(--crit)">21</span><span class="arrow">→</span><span class="score" style="color:var(--med)">68</span><span class="up">+47</span>
+          <span class="hint">ne pas installer → prudence</span>
+        </div>
+        <div class="cmp-cols">
+          <div class="cmp-col"><h3>Nouveaux<b>1</b></h3>
+            <div class="item"><span class="sev medium">moy.</span><span class="ttl">Dépendance abandonnée « req-lite » (typosquat probable)</span></div>
+          </div>
+          <div class="cmp-col resolved"><h3>Résolus<b>3</b></h3>
+            <div class="item"><span class="sev critical">crit.</span><span class="ttl">Clé d'accès AWS commitée</span></div>
+            <div class="item"><span class="sev high">élev.</span><span class="ttl">postinstall télécharge un script distant</span></div>
+            <div class="item"><span class="sev medium">moy.</span><span class="ttl">Injection de prompt README</span></div>
+          </div>
+          <div class="cmp-col"><h3>Persistants<b>4</b></h3>
+            <div class="item"><span class="sev high">élev.</span><span>pull_request_target avec checkout</span></div>
+            <div class="item"><span class="sev low">faible</span><span>Actions non épinglées ×3</span></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- ================= 07 ================= -->
+<section class="screen" id="s7">
+  <div class="screen-label">07 · États vides, chargement, erreur, connexion <span>F16, F13</span></div>
+  <div class="states">
+    <div class="state">
+      <div class="lbl">Vide · Historique</div>
+      <div class="empty-ledger">
+        <p>Registre vierge.</p>
+        <p style="color:var(--ink-3)">Aucun dépôt n'a encore été inspecté.</p>
+        <a class="btn primary sm" href="#s1">Inspecter un dépôt ▸</a>
+      </div>
+    </div>
+    <div class="state">
+      <div class="lbl">Chargement · Rapport</div>
+      <div class="skel" style="width:60%;height:28px"></div>
+      <div class="skel" style="width:35%;height:40px"></div>
+      <div class="skel"></div><div class="skel" style="width:88%"></div><div class="skel" style="width:92%"></div><div class="skel" style="width:70%"></div>
+      <span class="hint" style="margin-top:auto">Chargement du rapport #0142…</span>
+    </div>
+    <div class="state">
+      <div class="lbl">Erreur · Suivi de scan</div>
+      <div class="err-box"><code>CLAUDE_NOT_AUTHENTICATED</code>Claude n'est pas connecté sur ce serveur. Le scan #0143 est passé à <b class="mono">failed</b>, son clone a été supprimé.</div>
+      <div style="display:flex;gap:6px;margin-top:var(--s3);flex-wrap:wrap"><a class="btn sm" href="#s5">Ouvrir Paramètres</a><button class="btn sm">Relancer</button></div>
+      <div class="err-box" style="margin-top:var(--s4);border-color:var(--high);border-left-color:var(--high);background:var(--high-bg)"><code style="color:var(--high)">SANDBOX_VIOLATION</code>Session tuée : Read hors du clone (<span class="mono">&lt;data&gt;/secrets.json</span>). Finding interne créé.</div>
+      <div style="margin-top:auto;padding-top:var(--s4)"><span class="ws-pill"><span class="dot bad"></span>WS déconnectée · reconnexion dans 4 s (essai 3)</span></div>
+    </div>
+  </div>
+  <div class="states" style="margin-top:var(--s4)">
+    <div class="state" style="grid-column:span 2;background:var(--paper)">
+      <div class="lbl">Connexion · mode exposé (SCANNER_HOST=0.0.0.0)</div>
+      <div class="login">
+        <div class="tape"></div>
+        <div class="in">
+          <div class="brand" style="padding:0 0 var(--s4);border:0"><span class="brand-mark"></span>gh-scanner</div>
+          <div class="field"><label>Mot de passe administrateur</label><input type="password" value="••••••••••" class="err"></div>
+          <p class="hint err" style="margin:6px 0 var(--s3)">429 · trop de tentatives — réessayez dans 14 min.</p>
+          <button class="btn primary" style="width:100%;justify-content:center">Entrer</button>
+        </div>
+      </div>
+    </div>
+    <div class="state">
+      <div class="lbl">Vide · Sorties réseau</div>
+      <div class="empty-ledger"><p>Aucune connexion sortante.</p><p style="color:var(--ink-3)">Rien n'a quitté cette machine.</p><a class="btn sm" href="#s4">Ce que ce logiciel envoie</a></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 08 ================= -->
+<section class="screen" id="s8">
+  <div class="screen-label">08 · Mobile (≤ 760 px) <span>rapport condensé</span></div>
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="pbar"><span><span class="brand-mark" style="display:inline-block;vertical-align:-3px;width:14px;height:14px"></span> gh-scanner</span><span>Sorties <span class="badge" style="background:var(--crit);padding:0 5px">2</span></span></div>
+      <div class="pbody">
+        <div class="mono" style="font-weight:700">acme/deploy-kit</div>
+        <div class="hint" style="margin-bottom:var(--s4)">v2.3.1 · #0142</div>
+        <div style="display:flex;align-items:center;gap:var(--s4);margin-bottom:var(--s3)">
+          <div class="stamp" style="font-size:15px;padding:6px 10px">Ne pas<br>installer</div>
+          <div class="score" style="font-size:48px">21<sub>/100</sub></div>
+        </div>
+        <div class="counters" style="grid-template-columns:repeat(5,1fr);border-top:1px solid var(--ink)">
+          <div class="c-crit" style="padding:6px"><b style="font-size:18px">1</b>crit</div><div class="c-high" style="padding:6px"><b style="font-size:18px">2</b>élev</div><div class="c-med" style="padding:6px"><b style="font-size:18px">1</b>moy</div><div class="c-low" style="padding:6px"><b style="font-size:18px">4</b>faib</div><div class="c-info" style="padding:6px"><b style="font-size:18px">3</b>info</div>
+        </div>
+        <div class="finding crit"><div class="row" style="grid-template-columns:1fr"><span class="sev critical" style="justify-self:start">critique</span><span class="ttl">Clé d'accès AWS commitée</span><span class="loc">config/deploy.env:12</span></div></div>
+        <div class="finding high"><div class="row" style="grid-template-columns:1fr"><span class="sev high" style="justify-self:start">élevée</span><span class="ttl">pull_request_target avec checkout</span><span class="loc">.github/workflows/pr.yml:8</span></div></div>
+        <div class="receipt" style="margin-top:var(--s3)"><dl class="kv"><dt>→ Anthropic</dt><dd>48,2 Ko · 14 fichiers</dd><dt style="color:var(--crit)">bloquées</dt><dd style="color:var(--crit)">2</dd></dl></div>
+      </div>
+    </div>
+    <ul class="phone-notes">
+      <li>La navigation latérale devient une barre horizontale défilable ; le badge rouge reste visible.</li>
+      <li>Grilles à une colonne ; colonnes secondaires des tableaux masquées (<code>.hide-m</code>).</li>
+      <li>La frontière du bordereau devient horizontale : machine au-dessus, egress, extérieur en dessous.</li>
+      <li>Le tampon de verdict et le score restent le premier élément lu.</li>
+    </ul>
+  </div>
+</section>
+
+</body>
+</html>
