@@ -59,3 +59,4 @@
 - T29: README.md en français (installation serveur/PC, variables, menaces, limites) + section divulgation recopiée de content/outbound-disclosure.md (test d'égalité test/unit/readme.test.ts). Aucun contrat modifié.
 - 2026-10-21T13:29:41.651Z — T29 terminé (README en français et mise à jour des docs)
 - 2026-10-21T13:30:57.387Z — T30 terminé (Finition visuelle: transitions et micro-interactions)
+- F15: écart du port publié par egress conservé (contrainte Docker réseau internal); Docker absent de l'environnement, validation compose réelle non faisable; limite ajoutée au README.

@@ -79,6 +79,7 @@ Prérequis : Node.js ≥ 22, `git`, `gh` et `claude` (CLI) dans le `PATH`. Le se
 ## Limites connues
 
 - **Relais ingress** : le service `egress` relaie le port publié vers `app` (réseau `internal`) ; il voit donc le trafic de l'interface en clair, et publier plus largement ce port expose l'UI.
+- **Compose non exécuté en CI** : la configuration `docker-compose.yml` est vérifiée statiquement (tests unitaires) ; un `docker compose up --build` réel n'a pas pu être validé dans l'environnement de build (Docker absent). Lancez-le une fois et vérifiez `http://127.0.0.1:8417` avant tout usage.
 - **`statsig` bloqué** : `statsig.anthropic.com` est volontairement hors liste ; le CLI `claude` peut tenter de l'atteindre, ce qui génère une alerte visible sans conséquence fonctionnelle.
 - **Base de vulnérabilités commentée** : l'audit des dépendances par base de vulnérabilités externe (OSV, etc.) est désactivé, car il ajouterait une destination sortante ; les dépendances sont analysées localement et par Claude.
 - Sur PC, l'isolation réseau n'est pas imposée par le noyau (voir Installation).
