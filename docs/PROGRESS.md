@@ -32,3 +32,4 @@
 - 2026-10-21T11:21:44.328Z — T15 terminé (Module queue: file, concurrence, annulation, reprise)
 
 - T16: module report livré sous forme de fabrique `createReportService({repos, egressLog})` (au lieu de fonctions libres) ; INTERFACES.md mis à jour.
+- 2026-10-21T11:22:57.812Z — T16 terminé (Module report: rapport, comparaison, exports)
