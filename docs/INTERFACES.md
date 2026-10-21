@@ -206,9 +206,11 @@ export function computeScore(fs: Pick<Finding,'severity'>[]): number;  // 100 �
 export const PASS2_BATCHES: { id: string; categories: FindingCategory[] }[];
 
 // queue
-export interface Queue { enqueue(r: RepoRef & { keepClone: boolean }): Scan; cancel(id: string): Promise<Scan>;
-  rescan(id: string): Scan; positions(): Map<string, number>; recoverOnStartup(): Promise<number>; stop(): Promise<void> }
-export function createQueue(deps: { db: Db; ws: WsHub; config: Config }): Queue;
+export interface Queue { enqueue(r: RepoRef & { keepClone?: boolean }): Scan; cancel(id: string): Promise<Scan> /* AppError scan_not_cancellable si terminé */;
+  rescan(id: string): Scan; list(): { running: Scan[]; queued: Scan[] }; position(id: string): number|null /* 1 = prochain */;
+  positions(): Map<string, number>; recover(): Promise<number> /* actifs → failed 'interrompu', cleanupOrphans */; stop(): Promise<void> }
+export function createQueue(deps: { config: Config; db: Db; broadcast(e: WsEvent): void; pipeline?: typeof runScanPipeline; cloner?: Cloner; cancelTimeoutMs?: number }): Queue;
+// AppError/ErrorCode vivent dans server/api/errors.ts. scan.status émis à chaque transition (queuePosition pour les queued).
 
 // egress
 export interface AllowEntry { host: string; port: number }
