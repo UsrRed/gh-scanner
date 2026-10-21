@@ -260,3 +260,13 @@ body{background:var(--paper)}
 input[type=checkbox]{accent-color:var(--ink);width:15px;height:15px}
 ::selection{background:var(--quarantine);color:var(--quarantine-ink)}
 @keyframes spin{to{transform:rotate(360deg)}}
+
+/* ---------- polish: state views ---------- */
+.state{min-height:0}
+.state.empty{min-height:160px}
+.state.loading{min-height:120px}
+.state.error{border:0;background:none;padding:0}
+.state.error .err-box{display:flex;flex-direction:column;gap:2px}
+.state.empty .empty-ledger{padding-left:var(--s3)}
+.empty-ledger strong{font-size:14px}
+.empty-ledger .hint{max-width:56ch}

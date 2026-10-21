@@ -3,8 +3,11 @@ import type { ReactNode } from 'react';
 export function EmptyState({ title, children }: { title: string; children?: ReactNode }) {
   return (
     <div className="state empty" role="status">
-      <div className="lbl">{title}</div>
-      {children && <p>{children}</p>}
+      <div className="lbl">Aucune donnée</div>
+      <div className="empty-ledger">
+        <p><strong>{title}</strong></p>
+        {children && <p className="hint">{children}</p>}
+      </div>
     </div>
   );
 }
