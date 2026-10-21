@@ -4,3 +4,6 @@ export { fingerprintOf } from './fingerprint.js';
 export { mergeFindings } from './merge.js';
 export { computeScore } from './score.js';
 export type { RawFinding } from './types.js';
+export { BudgetTracker } from './budget.js';
+export { renderPrompt, systemPrompt, promptsVersion, PASS2_BATCHES } from './prompts.js';
+export * from './schemas.js';
