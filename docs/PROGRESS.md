@@ -3,3 +3,4 @@
 - 2026-10-21T10:25:14.741Z — workspace initialisé
 - 2026-10-21T10:42:27.202Z — découpage strictement linéaire — aucune parallélisation possible
 - 2026-10-21T10:59:16.959Z — T01 terminé (Config zod, types partagés, repo-input)
+- 2026-10-21T11:00:20.238Z — T02 terminé (Module redact et logger)
