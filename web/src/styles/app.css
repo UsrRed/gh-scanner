@@ -230,3 +230,20 @@ body{background:var(--paper)}
 .main{min-width:0}
 .nav li a .lbl{flex:1}
 .hazard-tape{background:repeating-linear-gradient(-45deg,var(--ink,#111) 0 10px,#F2C200 10px 20px);margin-bottom:16px}
+
+/* ---------- finishing: transitions & micro-interactions ---------- */
+@keyframes stamp-in{0%{transform:rotate(14deg) scale(1.7);opacity:0}55%{transform:rotate(-10deg) scale(.94);opacity:.92}75%{transform:rotate(-5deg) scale(1.04)}100%{transform:rotate(-7deg) scale(1);opacity:.92}}
+@keyframes meter-fill{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+@keyframes detail-in{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+@keyframes score-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.stamp{animation:stamp-in .7s cubic-bezier(.2,.8,.3,1) 1 both}
+.gauge .meter i{animation:meter-fill 1s ease-out 1 both;transition:width .4s ease}
+.score,.score-num{animation:score-in .6s ease-out 1 both}
+.finding[open] .detail{animation:detail-in .2s ease-out 1}
+.finding{transition:border-color .15s,box-shadow .15s}
+.finding:hover{box-shadow:2px 2px 0 var(--rule-strong)}
+.finding summary:hover{background:rgba(0,0,0,.03)}
+.finding summary:focus-visible,a:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--quarantine);outline-offset:2px}
+.btn{transition:background-color .15s,transform .1s}
+.btn:active{transform:translateY(1px)}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
