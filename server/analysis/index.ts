@@ -7,3 +7,5 @@ export type { RawFinding } from './types.js';
 export { BudgetTracker } from './budget.js';
 export { renderPrompt, systemPrompt, promptsVersion, PASS2_BATCHES } from './prompts.js';
 export * from './schemas.js';
+export { runScanPipeline } from './pipeline.js';
+export type { PipelineDeps, PipelineInput, ScanOutcome } from './pipeline.js';

@@ -193,7 +193,10 @@ export class BudgetTracker { constructor(limits: { usd: number; tokens: number }
 export interface PipelineContext { scan: Scan; repo: RepoRef; signal: AbortSignal;
   setStatus(s: ScanStatus): void; step(label: string, detail?: string): void; log(level: 'info'|'warn'|'error', msg: string): void }
 export interface PipelineOutcome { status: 'done'|'failed'|'budget_exceeded'|'cancelled'; failure: ScanFailure|null }
-export function runScanPipeline(ctx: PipelineContext): Promise<PipelineOutcome>;
+export function runScanPipeline(i: { scan: Scan; config: Config; deps: { repos: Repos; cloner: ReturnType<typeof createCloner> };
+  signal: AbortSignal; emit(e: WsEvent): void }): Promise<ScanOutcome>;   // T14: remplace PipelineContext/PipelineOutcome
+// ScanOutcome = { status: 'done'|'failed'|'budget_exceeded'|'cancelled'; failure: ScanFailure|null }. Persiste statut/usage/score/verdict/findings,
+// claude_sessions, outbound_reads, scan_logs ; émet scan.status/step/log/usage ; supprime le clone sauf keepClone/SCANNER_KEEP_CLONES.
 export interface RawFinding extends Omit<Finding,'id'|'scanId'|'fingerprint'|'snippet'> { snippet?: string }
 export function runLocalDetectors(dir: string, inv: Inventory): Promise<RawFinding[]>;
 export function extractSnippet(dir: string, file: string, line: number|null, maxLines?: number): Promise<string>;
