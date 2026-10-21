@@ -270,3 +270,17 @@ input[type=checkbox]{accent-color:var(--ink);width:15px;height:15px}
 .state.empty .empty-ledger{padding-left:var(--s3)}
 .empty-ledger strong{font-size:14px}
 .empty-ledger .hint{max-width:56ch}
+
+/* ---------- polish: nav & tables ---------- */
+.nav{position:sticky;top:0;align-self:start;height:100vh}
+.nav li a{transition:background-color .15s,color .15s}
+.nav li a:hover:not(.on){background:#24231F;color:#fff}
+.nav li a:focus-visible{outline-offset:-2px}
+tbody tr:hover td{background:rgba(28,27,24,.04)}
+tr.blocked:hover td{background:#F6DCD8}
+th{position:sticky;top:0;background:var(--card)}
+.panel table,.scan-card table{display:block;overflow-x:auto}
+.panel table tbody,.panel table thead,.scan-card table tbody,.scan-card table thead{display:table;width:100%}
+.page-h h2{display:flex;align-items:center;gap:var(--s2)}
+.page-h h2:before{content:"";width:10px;height:10px;background:var(--quarantine);border:2px solid var(--ink);flex:none}
+@media (max-width:760px){.nav{position:static;height:auto}}
