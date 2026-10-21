@@ -511,8 +511,8 @@
       ],
       "after": [],
       "phase": "core",
-      "status": "pending",
-      "commitSha": null,
+      "status": "done",
+      "commitSha": "cc868881330ddcfd93f5b708ed7b7bbf8d02af18",
       "worktreeDir": null
     },
     {
