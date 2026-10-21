@@ -128,7 +128,7 @@ export function truncateSecret(s: string): string;                      // 'AKIA
 
 // env-builder
 export type SubprocessKind = 'claude'|'claude-pty'|'gh'|'gh-login'|'git';
-export function buildSubprocessEnv(kind: SubprocessKind, ctx: { purpose: string; apiKey?: string }): Record<string,string>;
+export function buildSubprocessEnv(kind: SubprocessKind, ctx: { purpose: string; config: Config; apiKey?: string }): Record<string,string>; // alias buildEnv
 // toujours: PATH, HOME, LANG=C.UTF-8, HTTPS_PROXY/HTTP_PROXY/https_proxy/http_proxy=http://<purpose>:x@<egress>,
 //   DISABLE_TELEMETRY=1, DISABLE_ERROR_REPORTING=1, CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1, GH_TELEMETRY=0,
 //   GH_NO_UPDATE_NOTIFIER=1, NPM_CONFIG_UPDATE_NOTIFIER=false, NO_UPDATE_NOTIFIER=1, DO_NOT_TRACK=1
@@ -151,7 +151,7 @@ export function spawnTree(bin: string, args: string[], o: SpawnTreeOptions): Spa
 export function killTree(pid: number, graceMs?: number): Promise<void>;                     // SIGTERM -pgid, puis SIGKILL
 
 // gh
-export function runGh(args: string[], o: { purpose: string; kind?: 'gh'|'gh-login'; timeoutMs?: number; signal?: AbortSignal; cwd?: string }):
+export function runGh(args: string[], o: { purpose: string; config: Config; kind?: 'gh'|'gh-login'; timeoutMs?: number; signal?: AbortSignal; cwd?: string }):
   Promise<{ code: number; stdout: string; stderr: string }>;          // stdout/stderr masqués
 
 // cloner
