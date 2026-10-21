@@ -35,3 +35,4 @@
 - 2026-10-21T11:22:57.812Z — T16 terminé (Module report: rapport, comparaison, exports)
 - T17: settings-gh (device flow, status, logout, permissions) ajouté; contrat serveur noté dans INTERFACES.md.
 - 2026-10-21T11:24:27.386Z — T17 terminé (settings-gh: connexion GitHub device flow)
+- T18: settings-claude (secrets-store, console PTY auto-close, verify) + ws/pty-bridge; not yet wired into app (API routes pending).
