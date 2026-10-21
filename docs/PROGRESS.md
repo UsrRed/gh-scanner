@@ -51,3 +51,4 @@
 - 2026-10-21T13:19:03.007Z — T22 terminé (Test e2e complet et test de fuite)
 - 2026-10-21T13:20:28.380Z — T23 terminé (Front: Nouveau scan, File, Suivi en direct)
 - 2026-10-21T13:22:31.408Z — T24 terminé (Front: Rapport, Historique, Comparaison)
+- 2026-10-21T13:24:15.208Z — T25 terminé (Front: Sorties réseau, Vue par scan, page de divulgation)
