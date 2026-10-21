@@ -210,8 +210,8 @@
       ],
       "after": [],
       "phase": "foundation",
-      "status": "pending",
-      "commitSha": null,
+      "status": "done",
+      "commitSha": "e5d6694904bd4520e10b06f533e612e9d80ce5ce",
       "worktreeDir": null
     },
     {
