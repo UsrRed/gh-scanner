@@ -1,3 +1,4 @@
+import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { assertStartupAllowed, authRequired, loadConfig } from '../../server/config/index.js';
 import { appRoot } from '../../server/paths.js';
@@ -6,11 +7,11 @@ describe('loadConfig', () => {
   it('applies defaults', () => {
     const c = loadConfig({});
     expect(c).toMatchObject({
-      host: '127.0.0.1', port: 8417, dataDir: '/data', workDir: '/data/work', concurrency: 1, maxRepoMb: 200,
+      host: '127.0.0.1', port: 8417, dataDir: path.join(appRoot(), 'data'), workDir: path.join(appRoot(), 'data', 'work'), concurrency: 1, maxRepoMb: 200,
       cloneTimeoutS: 120, sessionTimeoutS: 900, budgetUsd: 2, budgetTokens: 1500000, maxTurns: 60,
       modelAnalysis: 'claude-sonnet-5-5', modelSynthesis: 'claude-opus-5-5', modelPing: 'claude-haiku-5-5',
       keepClones: false, claudeBin: 'claude', ghBin: 'gh', gitBin: 'git', egressPort: 3128,
-      egressSharedDir: '/data/egress', egressAppUrl: 'http://app:8417', cookieSecure: false,
+      egressSharedDir: path.join(appRoot(), 'data', 'egress'), egressAppUrl: 'http://app:8417', cookieSecure: false,
     });
     expect(c.egressAllowlist).toContainEqual({ host: 'api.anthropic.com', port: 443 });
     expect(c.egressAllowlist.some((e) => e.host === 'statsig.anthropic.com')).toBe(false);

@@ -46,7 +46,7 @@ Prérequis : Node.js ≥ 22, `git`, `gh` et `claude` (CLI) dans le `PATH`. Le se
 |---|---|---|
 | `SCANNER_HOST` | `127.0.0.1` | Adresse d'écoute ; non-loopback ⇒ mot de passe requis sauf `SCANNER_CONTAINER_LOCAL=1` |
 | `SCANNER_PORT` | `8417` | Port d'écoute |
-| `SCANNER_DATA_DIR` | `/data` | Données (base, réglages, homes des sous-processus) |
+| `SCANNER_DATA_DIR` | `<app>/data` (`/data` dans l'image Docker) | Données (base, réglages, homes des sous-processus) |
 | `SCANNER_WORK_DIR` | `<data>/work` | Clones temporaires |
 | `SCANNER_ADMIN_PASSWORD` | — | Mot de passe d'administration (haché au premier démarrage) |
 | `SCANNER_COOKIE_SECURE` | — | `1` ⇒ cookie de session `Secure` |

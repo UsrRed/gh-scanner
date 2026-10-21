@@ -1,6 +1,7 @@
 import path from 'node:path';
 import { z } from 'zod';
 import { envSchema, type AllowEntry } from './schema.js';
+import { appRoot } from '../paths.js';
 
 export type { AllowEntry } from './schema.js';
 export { parseAllowlist } from './schema.js';
@@ -30,7 +31,8 @@ export function loadConfig(env: NodeJS.ProcessEnv): Config {
     throw new ConfigError(`Invalid configuration: ${msg}`);
   }
   const e = r.data;
-  const dataDir = e.SCANNER_DATA_DIR;
+  // Default: <app>/data, writable for a non-root PC install (Docker sets /data explicitly).
+  const dataDir = path.resolve(e.SCANNER_DATA_DIR ?? path.join(appRoot(), 'data'));
   return {
     host: e.SCANNER_HOST, port: e.SCANNER_PORT, dataDir,
     workDir: e.SCANNER_WORK_DIR ?? path.join(dataDir, 'work'),

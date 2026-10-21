@@ -55,7 +55,7 @@ const allowlist = z.preprocess((v) => (v === undefined || v === '' ? DEFAULT_ALL
 export const envSchema = z.object({
   SCANNER_HOST: str('127.0.0.1'),
   SCANNER_PORT: int(8417, 0, 65535),
-  SCANNER_DATA_DIR: str('/data'),
+  SCANNER_DATA_DIR: opt,
   SCANNER_WORK_DIR: opt,
   SCANNER_ADMIN_PASSWORD: opt,
   SCANNER_COOKIE_SECURE: bool.default(false),

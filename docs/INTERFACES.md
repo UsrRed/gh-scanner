@@ -84,8 +84,8 @@ export function authRequired(c: Config): boolean;
 |---|---|---|
 | SCANNER_HOST | 127.0.0.1 | non-loopback ⇒ mot de passe requis sauf `SCANNER_CONTAINER_LOCAL=1` |
 | SCANNER_PORT | 8417 | |
-| SCANNER_DATA_DIR | /data | |
-| SCANNER_WORK_DIR | /data/work | |
+| SCANNER_DATA_DIR | <app>/data (/data dans l'image Docker) | |
+| SCANNER_WORK_DIR | <data>/work | |
 | SCANNER_ADMIN_PASSWORD | — | haché au 1er démarrage |
 | SCANNER_COOKIE_SECURE | — | `1` ⇒ `Secure` |
 | SCANNER_CONTAINER_LOCAL | — | compose uniquement |

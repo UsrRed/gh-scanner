@@ -5,7 +5,7 @@ import { startEgress, createHttpShipper, startIngressRelay, ensureSharedSecret }
 
 async function main(): Promise<void> {
   const env = { ...process.env, EGRESS_HOST: process.env.EGRESS_HOST ?? '0.0.0.0' };
-  const c = loadConfig({ SCANNER_DATA_DIR: process.env.SCANNER_DATA_DIR ?? '/data', ...env });
+  const c = loadConfig({ ...env });
   const secret = ensureSharedSecret(c.egressSharedDir);
   const sink = createHttpShipper({ appUrl: c.egressAppUrl, secret, spoolFile: path.join(c.egressSharedDir, 'spool.jsonl') });
   const proxy = await startEgress({ host: c.egressHost, port: c.egressPort, allowlist: c.egressAllowlist,

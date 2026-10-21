@@ -33,6 +33,7 @@ COPY --from=build --chown=10001:10001 /app/dist ./dist
 COPY --from=build --chown=10001:10001 /app/prompts ./prompts
 COPY --from=build --chown=10001:10001 /app/content ./content
 ENV NODE_ENV=production \
+    SCANNER_DATA_DIR=/data \
     DISABLE_TELEMETRY=1 \
     DISABLE_ERROR_REPORTING=1 \
     CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 \

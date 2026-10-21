@@ -62,3 +62,4 @@
 - F15: écart du port publié par egress conservé (contrainte Docker réseau internal); Docker absent de l'environnement, validation compose réelle non faisable; limite ajoutée au README.
 - 2026-10-21T13:40:43.991Z — audit: éléments partiels restants (F6, F15) — voir docs/FEATURE_AUDIT.md
 - 2026-10-21T13:42:20.110Z — vérification finale OK — prêt à déployer
+- 2026-10-21T14:37:42.000Z — `SCANNER_DATA_DIR` : le défaut passe de `/data` à `<app>/data` (résolu en absolu). `npm run start` sur un PC échouait avec `EACCES: permission denied, mkdir '/data'`. L'image Docker fixe toujours `SCANNER_DATA_DIR=/data` (Dockerfile + compose). Contrat mis à jour dans INTERFACES.md.
