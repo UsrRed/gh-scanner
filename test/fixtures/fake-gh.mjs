@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Fake `gh` CLI. Scenario read from $GH_CONFIG_DIR/.fake-gh.json:
 // { loggedIn=true, user='octocat', token, fixtureDir, cloneError, deviceCode='ABCD-1234' }
-import { readFileSync, writeFileSync, existsSync, cpSync, mkdirSync, rmSync } from 'node:fs';
+import { openSync, readFileSync, writeFileSync, existsSync, cpSync, mkdirSync, rmSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 
@@ -43,10 +43,13 @@ else if (a === 'auth' && b === 'status') {
   if (!sc.fixtureDir) fail('fake-gh: fixtureDir not configured');
   const sh = path.join(sc.fixtureDir, '.git');
   rmSync(dest, { recursive: true, force: true });
-  cpSync(sc.fixtureDir, dest, { recursive: true, filter: (s) => s !== sh && !s.startsWith(sh + path.sep) });
+  cpSync(sc.fixtureDir, dest, { recursive: true, verbatimSymlinks: true, filter: (s) => s !== sh && !s.startsWith(sh + path.sep) });
   const git = (...g) => { const r = spawnSync('git', g, { cwd: dest, encoding: 'utf8' }); if (r.status !== 0) fail(`git ${g[0]} failed: ${r.stderr}`); };
   git('init', '-q');
   git('add', '-A');
   git('-c', 'user.name=fixture', '-c', 'user.email=fixture@example.invalid', 'commit', '-q', '-m', 'fixture');
+  git('remote', 'add', 'origin', sc.originUrl ?? `https://github.com/${repo}.git`);
+  if (sc.cloneMode === 'huge') spawnSync('head', ['-c', String(sc.hugeBytes ?? 3 * 1024 * 1024), '/dev/zero'], { stdio: ['ignore', openSync(path.join(dest, 'huge.bin'), 'w'), 'ignore'] });
+  if (sc.cloneMode === 'slow') await new Promise((r) => setTimeout(r, 60000));
   console.error(`Cloning into '${dest}'...`);
 } else fail(`fake-gh: unsupported: ${args.join(' ')}`, 2);

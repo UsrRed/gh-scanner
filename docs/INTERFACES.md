@@ -157,9 +157,8 @@ export function runGh(args: string[], o: { purpose: string; config: Config; kind
 // cloner
 export interface CloneResult { dir: string; commitSha: string; sizeBytes: number; ignoredSymlinks: string[] }
 export class CloneError extends Error { kind: 'gh_missing'|'not_found'|'auth_required'|'ref_not_found'|'too_large'|'timeout'|'cancelled'|'unsafe_origin'|'failed' }
-export function cloneRepo(o: { scanId: string; repo: RepoRef; signal: AbortSignal; onLog(line: string): void }): Promise<CloneResult>;
-export function removeClone(scanId: string): Promise<void>;
-export function cleanupOrphans(keepIds: string[]): Promise<number>;
+export function createCloner(config: Config): { cloneRepo(o: { scanId: string; repo: RepoRef; signal: AbortSignal; onLog(line: string): void }): Promise<CloneResult>;
+  removeClone(scanId: string): Promise<void>; cleanupOrphans(keepIds: string[]): Promise<number> };  // purpose proxy: scan.<id>.clone
 export interface InventoryEntry { path: string; size: number; kind: 'text'|'binary'|'minified'|'symlink-outside' }
 export interface Inventory { files: InventoryEntry[]; manifests: string[]; lockfiles: string[]; ciWorkflows: string[];
   installScripts: string[]; totalBytes: number; truncated: boolean }
