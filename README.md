@@ -1,8 +1,17 @@
 # gh-scanner
 
-Scanner de dépôts GitHub assisté par Claude : clone un dépôt dans un bac à sable, l'analyse (analyses locales + sessions Claude en lecture seule), puis produit un rapport (score, verdict, constats). Voir `docs/SPEC.md` et `docs/ARCHITECTURE.md`.
+Scanner de dépôts GitHub assisté par Claude : clone un dépôt dans un bac à sable, l'analyse (analyses locales + sessions Claude en lecture seule), puis produit un rapport (score, verdict, constats). Voir `docs/SPEC.md` et `docs/ARCHITECTURE.md`. Pour le déploiement pas à pas, voir `docs/DEPLOY.md`.
+
+## Prérequis
+
+- **Node.js ≥ 22** et npm (pour l'installation sans Docker, le build et les tests).
+- **`git`**, **`gh`** (GitHub CLI) et **`claude`** (Claude Code CLI) dans le `PATH` pour les scans réels. Le build et les tests n'en ont pas besoin (faux CLI).
+- **Docker Engine + Compose v2** pour le déploiement recommandé.
+- `python3`, `make` et `g++` si `node-pty` ou `better-sqlite3` ne trouvent pas de binaire précompilé pour votre plateforme.
+- Un compte Claude (abonnement, login depuis les Réglages) ou une clé API Anthropic ; un compte GitHub pour les dépôts privés.
 
 ## Installation
+
 
 ### Serveur (Docker, recommandé)
 
@@ -84,6 +93,38 @@ Prérequis : Node.js ≥ 22, `git`, `gh` et `claude` (CLI) dans le `PATH`. Le se
 - **Base de vulnérabilités commentée** : l'audit des dépendances par base de vulnérabilités externe (OSV, etc.) est désactivé, car il ajouterait une destination sortante ; les dépendances sont analysées localement et par Claude.
 - Sur PC, l'isolation réseau n'est pas imposée par le noyau (voir Installation).
 - Analyse non exhaustive : l'absence de constat ne prouve pas l'innocuité d'un dépôt.
+
+## Utilisation
+
+Après installation et démarrage (`npm run start`, ou `docker compose up`), ouvrez `http://127.0.0.1:8417`, connectez GitHub et Claude depuis **Réglages**, puis lancez un scan depuis **Nouveau scan**. Le rapport est exportable en Markdown ou en JSON, sans données identifiantes.
+
+## Tests
+
+```bash
+npm install
+npm test
+```
+
+- `npm test` lance Vitest (`vitest run`) : tests unitaires, d'intégration, e2e et de composants web. La suite tourne hors ligne, en moins de 60 secondes.
+- Aucun appel réel à Claude ni à GitHub : `test/fixtures/fake-claude.mjs` et `fake-gh.mjs` remplacent les CLI via `SCANNER_CLAUDE_BIN` et `SCANNER_GH_BIN`.
+- Le test e2e lance le serveur et le proxy en sous-processus, sur des ports dédiés.
+- Le dépôt de test est généré à l'exécution ; ses secrets sont factices et construits par concaténation.
+
+## Structure du projet
+
+```
+server/     API Fastify, pipeline d'analyse, file, proxy egress, authentification
+web/        Interface React (Vite), styles tirés de la maquette docs/design/
+shared/     Types partagés serveur/web (types uniquement)
+prompts/    Gabarits des prompts Claude (versionnés par prompts/VERSION)
+content/    Divulgation sortante : source unique de la section finale de ce README
+test/       Fixtures, tests unitaires, d'intégration, e2e et web
+docs/       SPEC, ARCHITECTURE (carte du dépôt), INTERFACES, DEPLOY, PROGRESS
+Dockerfile, docker-compose.yml   Déploiement durci : services app et egress
+dist/       Généré par npm run build (non versionné)
+```
+
+Pour localiser un module, consultez `docs/ARCHITECTURE.md`.
 
 # Ce que ce logiciel envoie et à qui
 
