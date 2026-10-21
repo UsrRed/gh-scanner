@@ -11,3 +11,4 @@
 - 2026-10-21T11:02:20.715Z — T03 terminé (Module db: SQLite, migrations, repositories)
 - T04: buildSubprocessEnv/runGh now take `config` in their options (INTERFACES updated); `buildEnv` alias.
 - 2026-10-21T11:03:34.115Z — T04 terminé (proc, env-builder, gh-cli)
+- 2026-10-21T11:05:05.845Z — T05 terminé (Faux CLI, dépôt fixture, upstream de test, helpers)
