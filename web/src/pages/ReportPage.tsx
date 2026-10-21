@@ -68,7 +68,7 @@ export function ReportPage() {
         </div>
         <aside>
           <UsageTable passes={data.passes} total={scan.usage} />
-          <div style={{ marginTop: 'var(--s4)' }}><OutboundSummary outbound={data.outbound} /></div>
+          <div style={{ marginTop: 'var(--s4)' }}><OutboundSummary outbound={data.outbound} /><Link className="btn sm" to={`/scans/${scan.id}/outbound`}>Détail des sorties</Link></div>
         </aside>
       </div>
     </>
