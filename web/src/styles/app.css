@@ -284,3 +284,12 @@ th{position:sticky;top:0;background:var(--card)}
 .page-h h2{display:flex;align-items:center;gap:var(--s2)}
 .page-h h2:before{content:"";width:10px;height:10px;background:var(--quarantine);border:2px solid var(--ink);flex:none}
 @media (max-width:760px){.nav{position:static;height:auto}}
+
+/* ---------- polish: readability ---------- */
+.main{max-width:1180px;width:100%}
+.page-h .sub{max-width:60ch}
+.scan-card .body p,.panel p{max-width:78ch}
+.term{scrollbar-color:#4A4740 var(--term)}
+.chip{transition:background-color .15s,color .15s}
+button.chip{cursor:pointer}
+button.chip:hover:not(.on){background:var(--paper-2)}
