@@ -34,3 +34,4 @@
 - T16: module report livré sous forme de fabrique `createReportService({repos, egressLog})` (au lieu de fonctions libres) ; INTERFACES.md mis à jour.
 - 2026-10-21T11:22:57.812Z — T16 terminé (Module report: rapport, comparaison, exports)
 - T17: settings-gh (device flow, status, logout, permissions) ajouté; contrat serveur noté dans INTERFACES.md.
+- 2026-10-21T11:24:27.386Z — T17 terminé (settings-gh: connexion GitHub device flow)
