@@ -221,7 +221,9 @@ export function ensureSharedSecret(dir: string): string;   // <dir>/secret, 600
 // egress-log
 export interface EgressFilter { host?: string; purpose?: string; scanId?: string; blocked?: boolean; from?: string; to?: string }
 export interface EgressLog { ingest(events: EgressEvent[]): void; list(f: EgressFilter, page: number, pageSize: number): Page<EgressEvent>;
-  totals(f: EgressFilter): OutboundSummary['destinations']; alertState(): AlertState; ack(): AlertState; forScan(scanId: string): EgressEvent[] }
+  totals(f: EgressFilter): OutboundSummary['destinations']; alertState(): AlertState; ack(): AlertState; forScan(scanId: string): EgressEvent[];
+  acknowledge(): AlertState /* alias de ack */; summaryForScan(scanId: string): { destinations: OutboundSummary['destinations']; blockedConnections: number } }
+export function createEgressLog(deps: { repos: Repos; ws: Pick<WsHub,'broadcast'> }): EgressLog;   // ack persisté dans kv 'egress.lastAckAt'
 
 // auth
 export function registerAuth(app: FastifyInstance, deps: { db: Db; config: Config }): Promise<void>;
@@ -245,7 +247,8 @@ export function exportJson(scanId: string): ExportV1;
 export function exportMarkdown(scanId: string): string;
 
 // ws
-export interface WsHub { broadcast(e: WsEvent): void; register(app: FastifyInstance): void; clientCount(): number }
+export interface WsHub { broadcast(e: WsEvent): void /* redactDeep */; register(app: FastifyInstance, opts?: { authorize?: (req: FastifyRequest) => boolean }): Promise<void>; clientCount(): number }
+export function createWsHub(opts?: { serverVersion?: string }): WsHub;   // envoie 'hello' à la connexion
 
 // api errors
 export class AppError extends Error { constructor(public code: ErrorCode, public status: number, message: string) }

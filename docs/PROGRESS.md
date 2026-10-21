@@ -22,3 +22,4 @@
 - T09: module egress implémenté (proxy CONNECT, allowlist, purpose, shipper+spool, ingress-relay, secret.ts, entrée server/egress.ts). Contrats INTERFACES inchangés; purpose accepte 'scan.<id>.…' et 'scan:<id>:…' (mot de passe = dernier segment après ':').
 - 2026-10-21T11:13:24.204Z — T09 terminé (Module egress: proxy CONNECT, allowlist, journal, relais)
 - 2026-10-21T11:14:18.936Z — T10 terminé (Module auth: mot de passe, sessions, CSRF, rate-limit)
+- T11: WsHub.register is async with optional authorize; EgressLog gains acknowledge/summaryForScan (INTERFACES updated); ws + @types/ws added as devDeps.
