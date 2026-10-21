@@ -19,3 +19,4 @@
 ## T08
 - claude-runner ajouté. Contrat complété (non cassé): `initClaudeRunner(config)` requis, `BudgetLike` structurel, `ClaudeRunnerError.violation`. node-pty chargé paresseusement (binaire natif absent en dev → seul spawnLoginPty échoue).
 - 2026-10-21T11:11:31.813Z — T08 terminé (claude-runner: sessions contraintes, garde bac à sable, PTY)
+- T09: module egress implémenté (proxy CONNECT, allowlist, purpose, shipper+spool, ingress-relay, secret.ts, entrée server/egress.ts). Contrats INTERFACES inchangés; purpose accepte 'scan.<id>.…' et 'scan:<id>:…' (mot de passe = dernier segment après ':').
