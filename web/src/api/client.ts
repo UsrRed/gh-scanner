@@ -48,3 +48,4 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
 export const apiGet = <T>(path: string): Promise<T> => request<T>('GET', path);
 export const apiPost = <T>(path: string, body?: unknown): Promise<T> => request<T>('POST', path, body);
 export const apiDelete = <T>(path: string): Promise<T> => request<T>('DELETE', path);
+export const apiPut = <T>(path: string, body?: unknown): Promise<T> => request<T>('PUT', path, body);

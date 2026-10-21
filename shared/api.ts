@@ -12,3 +12,13 @@ export interface ScanOutbound { scanId: string; sessions: { id: string; pass: Pa
   files: { path: string; bytes: number; reads: number }[];
   anthropic: { connections: number; bytesUp: number; bytesDown: number }; github: EgressEvent[];
   summary: OutboundSummary }
+
+export type GhFlowState = 'starting' | 'pending' | 'connected' | 'expired' | 'cancelled' | 'error';
+export interface GhFlow { id: string; state: GhFlowState; userCode: string | null; verificationUrl: string | null; expiresAt: string; message: string | null }
+export interface GhStatus { connected: boolean; login: string | null; scopes: string[]; error: string | null }
+export interface ClaudeStatus { mode: 'cli-login' | 'api-key' | 'none'; cliLoggedIn: boolean; apiKeyHint: string | null;
+  lastCheck: { state: 'ok' | 'not_authenticated' | 'error'; message: string; at: string } | null }
+export interface SettingsView { auth: { required: boolean }; github: GhStatus & { activeFlow: GhFlow | null };
+  claude: ClaudeStatus; models: { analysis: string; synthesis: string }; budget: { usd: number; tokens: number };
+  egress: { mode: 'embedded' | 'external'; allowlist: string[] }; concurrency: number }
+export interface AuthMe { authRequired: boolean; authenticated: boolean; csrfToken: string | null }
