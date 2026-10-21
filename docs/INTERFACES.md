@@ -181,7 +181,10 @@ export function runStructured<T>(o: ClaudeSessionOptions, schema: ZodType<T>): P
 export function pingClaude(): Promise<{ state: 'ok'|'not_authenticated'|'error'; message: string }>;
 export interface PtyHandle { id: string; onData(cb: (d: string) => void): void; write(d: string): void;
   resize(c: number, r: number): void; onExit(cb: (reason: 'logged_in'|'timeout'|'exited'|'closed') => void): void; close(): void }
-export function spawnLoginPty(): PtyHandle;
+export function spawnLoginPty(): PtyHandle;   // node-pty chargé paresseusement
+export function initClaudeRunner(config: Config): void;  // à appeler au démarrage avant toute session
+// ClaudeSessionOptions.budget: BudgetLike = { add(Usage): void; readonly exceeded: boolean } (sous-ensemble de BudgetTracker)
+// ClaudeRunnerError.violation?: { tool; path: string|null; reason } (kind 'sandbox_violation' → finding sandbox-violation côté pipeline)
 export function checkToolUse(cloneDir: string, tool: string, input: unknown): { ok: true } | { ok: false; reason: string };
 
 // analysis

@@ -15,3 +15,6 @@
 - 2026-10-21T11:06:43.987Z — T06 terminé (Socle front: thème maquette, shell, client API, WS, états)
 - T07: cloner exposed as `createCloner(config)` factory (INTERFACES updated); fake-gh gained originUrl/cloneMode(huge|slow), verbatim symlinks.
 - 2026-10-21T11:09:07.222Z — T07 terminé (Cloner jetable et pré-inventaire)
+
+## T08
+- claude-runner ajouté. Contrat complété (non cassé): `initClaudeRunner(config)` requis, `BudgetLike` structurel, `ClaudeRunnerError.violation`. node-pty chargé paresseusement (binaire natif absent en dev → seul spawnLoginPty échoue).
