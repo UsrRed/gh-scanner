@@ -8,3 +8,4 @@
 ## T03 — db
 - `server/db` : openDb (WAL, migrations v1 idempotentes), repos typés, `createRepos`. Contrat ajouté en INTERFACES §10 (`Db` = `{raw, tx, close}`).
 - Note: `npm rebuild better-sqlite3` requis si le binding natif est absent.
+- 2026-10-21T11:02:20.715Z — T03 terminé (Module db: SQLite, migrations, repositories)
