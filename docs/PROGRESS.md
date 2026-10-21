@@ -67,3 +67,4 @@
 ## T31 — Rafraîchissement visuel
 Style global modernisé (tokens.css + bloc « modern refresh » en fin d'app.css) : polices système, palette sobre à accent unique indigo, rayons/ombres/spacing, boutons primaire/secondaire/fantôme, champs, badges en pilules, tableaux, nav sticky translucide. Aucun changement de structure, de contrat ni de ressource externe.
 - 2026-10-21T14:51:12.899Z — T31 terminé (Moderniser le design global de l'UI (tokens, shell, composants de base))
+- 2026-10-21T14:51:42.704Z — vérification finale OK — prêt à déployer
