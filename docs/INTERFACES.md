@@ -419,3 +419,6 @@ egressEvents: insertMany(EgressEvent[]) /* id dupliqué ignoré */; list(EgressF
 auth: create/get(id, now?)/delete/purgeExpired/recordLoginAttempt/countLoginAttempts/purgeLoginAttempts
 kv: get(key): string|null; set(key, value); delete(key)
 ```
+
+### settings-gh (T17, API serveur)
+`createSettingsGh(config, { onChange?, timeoutMs? }): { startLogin(): GhFlow /* throws FlowInProgressError */; getFlow(id?): GhFlow|null; cancelFlow(id?): Promise<GhFlow|null>; status(): Promise<GhStatus>; logout(): Promise<GhStatus>; verifyStoragePermissions(): string[] }` — `server/settings-gh/index.ts`.
