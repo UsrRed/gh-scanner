@@ -1,0 +1,1078 @@
+{
+  "tasks": [
+    {
+      "taskKey": "T01",
+      "position": 0,
+      "title": "Config zod, types partagés, repo-input",
+      "description": "ENTRÉES: docs/INTERFACES.md, ARCHITECTURE §2. SORTIES: server/config/schema.ts (schéma zod de TOUTES les variables de la SPEC avec défauts, EGRESS_ALLOWLIST par défaut incluant statsig.anthropic.com dans la liste mais bloqué par défaut selon SPEC), server/config/index.ts (loadConfig(env): Config, assertStartupAllowed(config) qui lève une erreur claire si SCANNER_HOST != 127.0.0.1 sans SCANNER_ADMIN_PASSWORD, sauf SCANNER_CONTAINER_LOCAL=1), server/paths.ts (appRoot(), chemins prompts/content/dist/web), shared/types.ts, shared/api.ts, shared/ws.ts (types type-only: Scan, ScanStatus, Finding, Usage, EgressEvent, Report, enveloppe WS et événements scan.status/step/log/usage, egress.event, settings.gh_login, format d'erreur {error:{code,message}}), server/repo-input/index.ts (parseRepoInput(input, ref?) -> {owner,repo,ref?} ou lève RepoInputError code 400; motif ^[A-Za-z0-9-]{1,39}/[A-Za-z0-9._-]{1,100}$, URL https://github.com/owner/repo(.git), refs git check-ref-format ou SHA hex, rejet autre hôte, '..', espaces, '-' initial, identifiants dans l'URL).",
+      "filesHint": [
+        "docs/INTERFACES.md",
+        "docs/SPEC.md",
+        "package.json"
+      ],
+      "writes": [
+        "server/config/schema.ts",
+        "server/config/index.ts",
+        "server/paths.ts",
+        "shared/types.ts",
+        "shared/api.ts",
+        "shared/ws.ts",
+        "server/repo-input/index.ts",
+        "test/unit/config.test.ts",
+        "test/unit/repo-input.test.ts"
+      ],
+      "acceptance": [
+        "Test unitaire repo-input couvrant ≥15 cas valides/invalides (autre hôte, .., espaces, -x, user:pass@, ref invalide, SHA)",
+        "loadConfig applique tous les défauts de la SPEC et rejette des valeurs invalides (ex. SCANNER_CONCURRENCY=0)",
+        "assertStartupAllowed lève pour SCANNER_HOST=0.0.0.0 sans mot de passe et passe avec mot de passe",
+        "npm run build typecheck passe avec les types partagés"
+      ],
+      "dependsOn": [],
+      "after": [],
+      "phase": "foundation",
+      "status": "pending",
+      "commitSha": null,
+      "worktreeDir": null
+    },
+    {
+      "taskKey": "T02",
+      "position": 1,
+      "title": "Module redact et logger",
+      "description": "ENTRÉES: server/config (Config). SORTIES: server/redact/patterns.ts, server/redact/index.ts exportant initRedaction({dataDir,workDir,hostname,username}), redact(text:string):string, redactDeep<T>(v:T):T, truncateSecret(s):string (4 premiers caractères + '…'), registerSecret(s). Remplace chemins clone/data par <repo>/… et <data>, hostname, username, IP, tokens (gh[pousr]_, github_pat_, sk-ant-, AKIA, JWT, PEM) par [REDACTED:<type>]. server/log.ts: logger applicatif qui passe par redact et n'émet jamais de stack côté client.",
+      "filesHint": [
+        "docs/INTERFACES.md",
+        "server/config/index.ts"
+      ],
+      "writes": [
+        "server/redact/patterns.ts",
+        "server/redact/index.ts",
+        "server/log.ts",
+        "test/unit/redact.test.ts"
+      ],
+      "acceptance": [
+        "Test unitaire par motif (chemin data, work, hostname, username, IPv4 privée/publique, ghp_, github_pat_, sk-ant-, AKIA, JWT, PEM)",
+        "5 textes ordinaires (dont numéros de version) inchangés",
+        "truncateSecret ne renvoie jamais le secret entier",
+        "redactDeep masque récursivement objets et tableaux"
+      ],
+      "dependsOn": [
+        "T01"
+      ],
+      "after": [],
+      "phase": "foundation",
+      "status": "pending",
+      "commitSha": null,
+      "worktreeDir": null
+    },
+    {
+      "taskKey": "T03",
+      "position": 2,
+      "title": "Module db: SQLite, migrations, repositories",
+      "description": "ENTRÉES: Config (dataDir), types shared/types.ts, redact(). SORTIES: server/db/index.ts (openDb(path):Db WAL, transaction helper), server/db/migrations.ts (migrations versionnées + table schema_migrations: scans, findings, logs, claude_sessions, outbound_reads, egress_events, auth_sessions, kv), repos typés dans server/db/repos/{scans,findings,logs,claude-sessions,outbound,egress-events,auth,kv}.ts. Tout texte persisté passe par redact() au point d'écriture. Les signatures exactes sont consignées dans docs/INTERFACES.md (section db).",
+      "filesHint": [
+        "docs/INTERFACES.md",
+        "shared/types.ts",
+        "server/redact/index.ts"
+      ],
+      "writes": [
+        "server/db/index.ts",
+        "server/db/migrations.ts",
+        "server/db/repos/scans.ts",
+        "server/db/repos/findings.ts",
+        "server/db/repos/logs.ts",
+        "server/db/repos/claude-sessions.ts",
+        "server/db/repos/outbound.ts",
+        "server/db/repos/egress-events.ts",
+        "server/db/repos/auth.ts",
+        "server/db/repos/kv.ts",
+        "test/unit/db.test.ts",
+        "docs/INTERFACES.md"
+      ],
+      "acceptance": [
+        "Migrations idempotentes: deux ouvertures successives ne rejouent rien",
+        "CRUD scans/findings/outbound/egress_events testé sur DB temporaire",
+        "Un log contenant un token simulé est stocké masqué",
+        "Liste des scans filtrable (repo, statut, date) et paginée"
+      ],
+      "dependsOn": [
+        "T01",
+        "T02"
+      ],
+      "after": [],
+      "phase": "foundation",
+      "status": "pending",
+      "commitSha": null,
+      "worktreeDir": null
+    },
+    {
+      "taskKey": "T04",
+      "position": 3,
+      "title": "proc, env-builder, gh-cli",
+      "description": "ENTRÉES: Config, redact.registerSecret. SORTIES: server/proc/spawn.ts (spawnTree(cmd,args[],opts):{pid,child,done}, detached=groupe de processus, jamais shell:true, timeout, killTree(pid) par PID via -pgid, lancement .mjs/.js via process.execPath), server/env-builder/index.ts (buildEnv(kind:'claude'|'gh'|'git', {purpose, config, apiKey?}):Record<string,string> en liste blanche: PATH minimal, HOME=<data>/claude-home pour claude, HTTPS_PROXY/HTTP_PROXY=http://<purpose>:x@egress, variables télémétrie F14 (DISABLE_TELEMETRY, CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC, GH_TELEMETRY=0, GH_NO_UPDATE_NOTIFIER, NPM_CONFIG_UPDATE_NOTIFIER=false, NO_UPDATE_NOTIFIER, DO_NOT_TRACK=1), GH_CONFIG_DIR, BROWSER neutralisé, ANTHROPIC_API_KEY seulement si configurée), server/gh/gh-cli.ts (runGh(args[], {purpose, ...}) unique lanceur de gh, binaire SCANNER_GH_BIN).",
+      "filesHint": [
+        "docs/INTERFACES.md",
+        "server/config/index.ts"
+      ],
+      "writes": [
+        "server/proc/spawn.ts",
+        "server/env-builder/index.ts",
+        "server/gh/gh-cli.ts",
+        "test/unit/env-builder.test.ts",
+        "test/integration/proc.test.ts"
+      ],
+      "acceptance": [
+        "Test: aucune variable de process.env (dont HOST_SECRET piège) ne fuit dans buildEnv",
+        "ANTHROPIC_API_KEY absent si non configurée, présent sinon",
+        "killTree tue un arbre (parent+enfant) par PID en <1 s sans pkill",
+        "Les variables télémétrie F14 sont toujours positionnées"
+      ],
+      "dependsOn": [
+        "T01",
+        "T02"
+      ],
+      "after": [],
+      "phase": "foundation",
+      "status": "pending",
+      "commitSha": null,
+      "worktreeDir": null
+    },
+    {
+      "taskKey": "T05",
+      "position": 4,
+      "title": "Faux CLI, dépôt fixture, upstream de test, helpers",
+      "description": "SORTIES: test/fixtures/fake-claude.mjs (scénarios via $HOME/.fake-claude.json: succès, outil interdit, chemin hors clone, JSON invalide, dépassement de budget, injection; rejoue du stream-json avec tool_use/tool_result/usage/result; ouvre de vraies connexions CONNECT via HTTPS_PROXY vers api.anthropic.com:443 et statsig.anthropic.com; marqueur PASS: dans le prompt stdin; simule login/ping), test/fixtures/fake-gh.mjs (scénarios via $GH_CONFIG_DIR/.fake-gh.json: clone = copie du dépôt fixture + git init + commit, device flow avec code et URL https://github.com/login/device, auth status, api user, logout), test/fixtures/make-vuln-repo.ts (génère le dépôt git: secret factice construit par concaténation, .github/workflows/pr.yml pull_request_target + checkout PR, package.json postinstall 'curl … | sh', README avec injection de prompt), test/fixtures/echo-upstream.ts (faux serveur TLS/TCP), test/helpers/{tmp-dirs,wait-for-status,leak-check}.ts (leak-check recherche HOST_SECRET, hostname, username, chemins data/work, token simulé).",
+      "filesHint": [
+        "docs/INTERFACES.md"
+      ],
+      "writes": [
+        "test/fixtures/fake-claude.mjs",
+        "test/fixtures/fake-gh.mjs",
+        "test/fixtures/make-vuln-repo.ts",
+        "test/fixtures/vuln-repo/package.json",
+        "test/fixtures/vuln-repo/README.md",
+        "test/fixtures/vuln-repo/.github/workflows/pr.yml",
+        "test/fixtures/echo-upstream.ts",
+        "test/helpers/tmp-dirs.ts",
+        "test/helpers/wait-for-status.ts",
+        "test/helpers/leak-check.ts",
+        "test/unit/fixtures.test.ts"
+      ],
+      "acceptance": [
+        "Le dépôt fixture généré est un vrai dépôt git avec les 4 failles plantées et aucun secret littéral dans les sources versionnées",
+        "fake-claude émet un flux stream-json valide pour chaque scénario (test unitaire)",
+        "fake-gh affiche code et URL du device flow"
+      ],
+      "dependsOn": [
+        "T01"
+      ],
+      "after": [],
+      "phase": "foundation",
+      "status": "pending",
+      "commitSha": null,
+      "worktreeDir": null
+    },
+    {
+      "taskKey": "T06",
+      "position": 5,
+      "title": "Socle front: thème maquette, shell, client API, WS, états",
+      "description": "ENTRÉES: docs/design/ (maquette, à consulter pour tokens et primitives), shared/api.ts, shared/ws.ts. SORTIES: web/index.html, web/src/main.tsx, web/src/styles/tokens.css (variables :root maquette, polices système uniquement), web/src/styles/app.css (primitives .app/.nav/.panel/.btn/.field/.chip/.sev/.tag/.alert/.track/.gauge/.term/.verdict/.stamp/.counters/.finding/tables), web/src/api/client.ts (apiGet/apiPost/apiDelete avec jeton CSRF et erreurs uniformes ApiError{code,message}), web/src/ws/WsProvider.tsx (connexion /ws, backoff exponentiel, état 'live'|'connecting'|'down'), web/src/hooks/{useApi,useWsEvent}.ts, composants AppShell, Nav (liens, badge alertes clignotant, indicateur WS en pied), PageHeader, StateViews (EmptyState/LoadingState/ErrorState avec bouton de reprise), SeverityBadge, SourceTag. Ne crée PAS App.tsx (câblé en T27).",
+      "filesHint": [
+        "docs/design/",
+        "shared/api.ts",
+        "shared/ws.ts"
+      ],
+      "writes": [
+        "web/index.html",
+        "web/src/main.tsx",
+        "web/src/styles/tokens.css",
+        "web/src/styles/app.css",
+        "web/src/api/client.ts",
+        "web/src/ws/WsProvider.tsx",
+        "web/src/hooks/useApi.ts",
+        "web/src/hooks/useWsEvent.ts",
+        "web/src/components/AppShell.tsx",
+        "web/src/components/Nav.tsx",
+        "web/src/components/PageHeader.tsx",
+        "web/src/components/StateViews.tsx",
+        "web/src/components/SeverityBadge.tsx",
+        "web/src/components/SourceTag.tsx",
+        "test/web/foundation.test.tsx"
+      ],
+      "acceptance": [
+        "Test: StateViews rend vide/chargement/erreur et le bouton de reprise appelle le callback",
+        "Test: le client API lève ApiError avec code/message sur réponse {error}",
+        "Test: WsProvider reconnecte avec backoff après fermeture (timers factices)",
+        "À l'écran, la nav sombre à 216px affiche la marque, les liens mono et un point d'état WS vert/orange/rouge conforme à la maquette",
+        "Aucune URL externe ni police distante dans les CSS"
+      ],
+      "dependsOn": [
+        "T01"
+      ],
+      "after": [],
+      "phase": "foundation",
+      "status": "pending",
+      "commitSha": null,
+      "worktreeDir": null
+    },
+    {
+      "taskKey": "T07",
+      "position": 6,
+      "title": "Cloner jetable et pré-inventaire",
+      "description": "ENTRÉES: runGh (T04), spawnTree/killTree, buildEnv, Config. SORTIES: server/cloner/index.ts (cloneRepo({scanId,owner,repo,ref?,keep?,onLog,signal}):Promise<{dir,inventory}>, removeClone(scanId), cleanupOrphans()), server/cloner/gitconfig.ts (<data>/git/gitconfig: core.hooksPath=/dev/null, credential helper gh, submodule/lfs off), server/cloner/inventory.ts (arborescence relative, tailles, manifestes/lockfiles, binaires/minifiés, symlinks hors clone ignorés et signalés). Commande: gh repo clone owner/repo <work>/<scanId> -- --depth=1 --no-tags, puis git fetch --depth=1 origin <ref> + checkout FETCH_HEAD; GIT_TERMINAL_PROMPT=0; finalité proxy scan:<id>:clone; surveillance taille (SCANNER_MAX_REPO_MB, poll 1 s) et délai (SCANNER_CLONE_TIMEOUT_S) avec kill par PID; origin vérifié sans token.",
+      "filesHint": [
+        "docs/INTERFACES.md",
+        "server/gh/gh-cli.ts",
+        "server/proc/spawn.ts",
+        "server/env-builder/index.ts"
+      ],
+      "writes": [
+        "server/cloner/index.ts",
+        "server/cloner/gitconfig.ts",
+        "server/cloner/inventory.ts",
+        "test/integration/cloner.test.ts",
+        "test/unit/inventory.test.ts"
+      ],
+      "acceptance": [
+        "Test avec fake-gh: clone dans $WORK/<id>, ref checkout, remote origin sans token",
+        "Dépassement de taille ou de délai => erreur explicite et clone supprimé",
+        "Symlink pointant hors clone listé comme ignoré dans l'inventaire",
+        "Inventaire détecte manifestes, binaires et minifiés"
+      ],
+      "dependsOn": [
+        "T04",
+        "T05",
+        "T01"
+      ],
+      "after": [],
+      "phase": "core",
+      "status": "pending",
+      "commitSha": null,
+      "worktreeDir": null
+    },
+    {
+      "taskKey": "T08",
+      "position": 7,
+      "title": "claude-runner: sessions contraintes, garde bac à sable, PTY",
+      "description": "ENTRÉES: spawnTree/killTree, buildEnv, redact, SCANNER_CLAUDE_BIN, fake-claude. SORTIES (seul lanceur de claude): server/claude-runner/index.ts (runClaudeSession(opts):Promise<SessionResult> avec callbacks onEvent, runStructured<T>(opts, zodSchema) avec une seule relance si JSON invalide, pingClaude()), args.ts (-p --output-format stream-json --verbose --model --allowedTools Read,Grep,Glob --disallowedTools Bash,Write,Edit,MultiEdit,NotebookEdit,WebFetch,WebSearch,Task --strict-mcp-config --mcp-config <fichier vide> --settings <sandbox-settings.json> --append-system-prompt --max-turns; prompt via stdin; cwd=clone), stream.ts (parseur stream-json tolérant -> RunnerEvent: tool_use, tool_result{bytes,excerpt masqué}, usage, result), sandbox-guard.ts (outil ∈ Read/Grep/Glob, realpath ⊂ clone, sinon killTree immédiat + finding sandbox-violation), errors.ts (ClaudeRunnerError: cli_missing, not_authenticated, quota, timeout SCANNER_SESSION_TIMEOUT_S, invalid_output; messages distincts), pty.ts (spawnLoginPty() via node-pty, HOME claude-home).",
+      "filesHint": [
+        "docs/INTERFACES.md",
+        "server/proc/spawn.ts",
+        "server/env-builder/index.ts",
+        "test/fixtures/fake-claude.mjs"
+      ],
+      "writes": [
+        "server/claude-runner/index.ts",
+        "server/claude-runner/args.ts",
+        "server/claude-runner/stream.ts",
+        "server/claude-runner/sandbox-guard.ts",
+        "server/claude-runner/errors.ts",
+        "server/claude-runner/pty.ts",
+        "test/integration/claude-runner.test.ts",
+        "test/unit/stream.test.ts"
+      ],
+      "acceptance": [
+        "Test: argv contient exactement les drapeaux imposés et jamais Bash",
+        "Test fake CLI: outil Bash => session tuée + violation; Read hors clone => tuée + violation",
+        "Test: JSON invalide => une relance puis erreur explicite",
+        "Test: CLI absent, non authentifié, quota, timeout => messages distincts",
+        "Test: env du sous-processus sans HOST_SECRET",
+        "Le tool_result produit taille et extrait masqué"
+      ],
+      "dependsOn": [
+        "T04",
+        "T05",
+        "T02"
+      ],
+      "after": [],
+      "phase": "core",
+      "status": "pending",
+      "commitSha": null,
+      "worktreeDir": null
+    },
+    {
+      "taskKey": "T09",
+      "position": 8,
+      "title": "Module egress: proxy CONNECT, allowlist, journal, relais",
+      "description": "ENTRÉES: Config (EGRESS_PORT, EGRESS_ALLOWLIST), types EgressEvent. SORTIES: server/egress/proxy.ts (startEgress({port,allowlist,sink}):{close,port}; CONNECT sans déchiffrer TLS, hôte exact + port 443 uniquement sinon 403 + blocked=true, comptage octets envoyés/reçus, durée, début/fin), allowlist.ts (parse host[:port], overrides de test EGRESS_HOST_OVERRIDES), purpose.ts (décodage Proxy-Authorization 'scan:<id>:clone|claude', 'settings:gh-login', repli par hôte), shipper.ts (HttpShipper POST /internal/egress/events avec X-Egress-Secret, spool.jsonl + rejeu toutes les 5 s si app indisponible), ingress-relay.ts (relais TCP 8417 -> app:8417), server/egress.ts (entrée dist/egress.js).",
+      "filesHint": [
+        "docs/INTERFACES.md",
+        "shared/types.ts",
+        "test/fixtures/echo-upstream.ts"
+      ],
+      "writes": [
+        "server/egress/proxy.ts",
+        "server/egress/allowlist.ts",
+        "server/egress/purpose.ts",
+        "server/egress/shipper.ts",
+        "server/egress/ingress-relay.ts",
+        "server/egress.ts",
+        "test/integration/egress.test.ts",
+        "test/unit/allowlist.test.ts",
+        "test/unit/purpose.test.ts"
+      ],
+      "acceptance": [
+        "Test: CONNECT vers faux serveur TLS en allowlist de test => tunnel OK",
+        "Test: hôte hors liste (dont statsig.anthropic.com par défaut) => 403 et événement blocked=true",
+        "Test: octets envoyés/reçus journalisés pour le tunnel",
+        "Test: sink indisponible => spool JSONL puis rejeu",
+        "Test: finalité extraite de Proxy-Authorization, repli par hôte"
+      ],
+      "dependsOn": [
+        "T01",
+        "T05"
+      ],
+      "after": [],
+      "phase": "core",
+      "status": "pending",
+      "commitSha": null,
+      "worktreeDir": null
+    },
+    {
+      "taskKey": "T10",
+      "position": 9,
+      "title": "Module auth: mot de passe, sessions, CSRF, rate-limit",
+      "description": "ENTRÉES: Config, repos db/auth. SORTIES: server/auth/password.ts (scrypt hash/verify, auth.json 600, haché au premier démarrage), sessions.ts (sessions SQLite, cookie HttpOnly SameSite=Strict, Secure si SCANNER_COOKIE_SECURE=1, expiration 12 h), csrf.ts (jeton par session, en-tête X-CSRF-Token sur mutations), rate-limit.ts (5 échecs/15 min/IP => 429), index.ts (registerAuth(app,deps), hook requireAuth HTTP + vérification upgrade WS par même cookie; auth optionnelle en local, activée si mot de passe défini), server/api/routes/auth.ts (POST /api/auth/login, POST /api/auth/logout, GET /api/auth/me renvoyant csrfToken).",
+      "filesHint": [
+        "docs/INTERFACES.md",
+        "server/db/repos/auth.ts",
+        "server/config/index.ts"
+      ],
+      "writes": [
+        "server/auth/password.ts",
+        "server/auth/sessions.ts",
+        "server/auth/csrf.ts",
+        "server/auth/rate-limit.ts",
+        "server/auth/index.ts",
+        "server/api/routes/auth.ts",
+        "test/integration/auth.test.ts"
+      ],
+      "acceptance": [
+        "Test: login correct pose un cookie HttpOnly SameSite=Strict",
+        "Test: 6e échec en 15 min => 429",
+        "Test: accès sans cookie => 401; mutation sans CSRF => 403",
+        "Test: en local sans mot de passe, accès libre",
+        "auth.json créé en permissions 600"
+      ],
+      "dependsOn": [
+        "T01",
+        "T03"
+      ],
+      "after": [],
+      "phase": "core",
+      "status": "pending",
+      "commitSha": null,
+      "worktreeDir": null
+    },
+    {
+      "taskKey": "T11",
+      "position": 10,
+      "title": "Hub WebSocket et module egress-log",
+      "description": "ENTRÉES: repos db/egress-events, redact, shared/ws.ts. SORTIES: server/ws/index.ts (WsHub: register(app,{authorize}), broadcast(event) avec redactDeep, route /ws), server/egress-log/index.ts (ingest(event) => persistance + broadcast egress.event + alerte si blocked; list(filters: destination, finalité, scan, statut, période, pagination), totals() par destination (connexions, octets envoyés/reçus), alertState(), acknowledge(), summaryForScan(scanId) pour rapport/vue par scan).",
+      "filesHint": [
+        "docs/INTERFACES.md",
+        "server/db/repos/egress-events.ts",
+        "shared/ws.ts"
+      ],
+      "writes": [
+        "server/ws/index.ts",
+        "server/egress-log/index.ts",
+        "test/integration/ws-egress-log.test.ts"
+      ],
+      "acceptance": [
+        "Test: client WS reçoit egress.event après ingest",
+        "Test: connexion bloquée => alerte non acquittée jusqu'à acknowledge()",
+        "Test: filtres, pagination et totaux par destination corrects",
+        "Test: événements WS masqués (token simulé absent)"
+      ],
+      "dependsOn": [
+        "T03",
+        "T02",
+        "T01"
+      ],
+      "after": [],
+      "phase": "core",
+      "status": "pending",
+      "commitSha": null,
+      "worktreeDir": null
+    },
+    {
+      "taskKey": "T12",
+      "position": 11,
+      "title": "Analyse locale: détecteurs, extraits, fingerprint, fusion, score",
+      "description": "ENTRÉES: types Finding, redact, truncateSecret. SORTIES: server/analysis/detectors/{index,secrets,ci,npm-scripts,prompt-injection}.ts (runLocalDetectors(dir, inventory):Finding[]: regex AWS, ghp_, sk-, PEM; pull_request_target avec checkout PR; scripts npm preinstall/postinstall suspects; motifs d'injection de prompt dans README/fichiers), snippet.ts (extrait ≤20 lignes relu depuis le clone, masqué, secrets tronqués), fingerprint.ts (sha256 règle|fichier|extrait normalisé), merge.ts (mergeFindings dédup par (fichier,ligne,règle)), score.ts (computeScore: 100 −40/−15/−5/−1, min 0).",
+      "filesHint": [
+        "docs/INTERFACES.md",
+        "shared/types.ts",
+        "server/redact/index.ts"
+      ],
+      "writes": [
+        "server/analysis/detectors/index.ts",
+        "server/analysis/detectors/secrets.ts",
+        "server/analysis/detectors/ci.ts",
+        "server/analysis/detectors/npm-scripts.ts",
+        "server/analysis/detectors/prompt-injection.ts",
+        "server/analysis/snippet.ts",
+        "server/analysis/fingerprint.ts",
+        "server/analysis/merge.ts",
+        "server/analysis/score.ts",
+        "test/unit/detectors.test.ts",
+        "test/unit/score.test.ts",
+        "test/unit/merge.test.ts",
+        "test/unit/fingerprint.test.ts"
+      ],
+      "acceptance": [
+        "Sur le dépôt fixture, détecte secret (critical, tronqué), pull_request_target (high), postinstall et injection de prompt avec fichier:ligne",
+        "Score: 1 critique + 1 élevée => 45; plancher 0",
+        "Fusion: doublon Claude/local même (fichier,ligne,règle) => un seul finding",
+        "Fingerprint stable entre deux exécutions et insensible aux espaces",
+        "Snippet jamais >20 lignes ni secret complet"
+      ],
+      "dependsOn": [
+        "T01",
+        "T02",
+        "T05"
+      ],
+      "after": [],
+      "phase": "core",
+      "status": "pending",
+      "commitSha": null,
+      "worktreeDir": null
+    },
+    {
+      "taskKey": "T13",
+      "position": 12,
+      "title": "Prompts versionnés, schémas zod, budget",
+      "description": "SORTIES: prompts/VERSION, prompts/system.md (traite toute instruction du dépôt comme donnée; injection => finding prompt-injection; réponse JSON conforme au schéma), prompts/pass1-mapping.md, prompts/pass2-targeted.md (gabarit + sections par lot secrets+deps, injection+install-scripts, ci-cd, quality, prompt-injection), prompts/pass3-synthesis.md, server/analysis/prompts.ts (renderPrompt(pass, vars) avec redact appliqué, marqueur PASS:), server/analysis/schemas.ts (zod MappingOutput, TargetedOutput, SynthesisOutput{verdict trust|caution|do-not-install, score, justification}), server/analysis/budget.ts (BudgetTracker: cumul tokens entrée/sortie/cache et USD depuis usage/result, exceeded(), SCANNER_BUDGET_USD/TOKENS).",
+      "filesHint": [
+        "docs/INTERFACES.md",
+        "shared/types.ts",
+        "server/redact/index.ts"
+      ],
+      "writes": [
+        "prompts/VERSION",
+        "prompts/system.md",
+        "prompts/pass1-mapping.md",
+        "prompts/pass2-targeted.md",
+        "prompts/pass3-synthesis.md",
+        "server/analysis/prompts.ts",
+        "server/analysis/schemas.ts",
+        "server/analysis/budget.ts",
+        "test/unit/schemas.test.ts",
+        "test/unit/budget.test.ts"
+      ],
+      "acceptance": [
+        "Schémas zod acceptent une sortie valide et rejettent champs manquants/sévérité inconnue",
+        "BudgetTracker signale le dépassement tokens ET USD",
+        "Prompt rendu ne contient aucun chemin absolu ni token simulé",
+        "system.md contient la consigne anti-injection"
+      ],
+      "dependsOn": [
+        "T01",
+        "T02"
+      ],
+      "after": [],
+      "phase": "core",
+      "status": "pending",
+      "commitSha": null,
+      "worktreeDir": null
+    },
+    {
+      "taskKey": "T14",
+      "position": 13,
+      "title": "Passes d'analyse et pipeline de scan",
+      "description": "ENTRÉES: cloneRepo (T07), runStructured/runClaudeSession (T08), détecteurs/merge/score/snippet (T12), prompts/schemas/BudgetTracker (T13), repos db (T03). SORTIES: server/analysis/passes/{mapping,targeted,synthesis}.ts et server/analysis/pipeline.ts: runScanPipeline({scan,config,deps,signal,emit}):Promise<ScanOutcome> enchaînant clone -> inventaire + détecteurs -> passe 1 (Sonnet, SCANNER_MODEL_ANALYSIS) -> passe 2 (une session par lot) -> passe 3 (Opus, SCANNER_MODEL_SYNTHESIS), fusion/dédup, extraits relus du clone, fingerprint, score déterministe + verdict Claude. Émet scan.status/step/log/usage via emit; persiste claude_sessions (modèle, passe, prompt masqué, taille, tokens) et outbound_reads (chaque tool_use Read/Grep/Glob: chemin relatif, lignes/motif, taille retournée). Dépassement budget => session stoppée, aucune nouvelle passe, statut budget_exceeded avec rapport partiel. Violation sandbox => finding interne. Clone supprimé sauf conservation.",
+      "filesHint": [
+        "docs/INTERFACES.md",
+        "server/cloner/index.ts",
+        "server/claude-runner/index.ts",
+        "server/analysis/schemas.ts",
+        "server/analysis/merge.ts"
+      ],
+      "writes": [
+        "server/analysis/passes/mapping.ts",
+        "server/analysis/passes/targeted.ts",
+        "server/analysis/passes/synthesis.ts",
+        "server/analysis/pipeline.ts",
+        "test/integration/pipeline.test.ts"
+      ],
+      "acceptance": [
+        "Test fake CLI: scan complet sur fixture => done avec secret critique masqué, pull_request_target, postinstall et prompt-injection",
+        "Test: scénario budget => budget_exceeded, rapport partiel, pas de passe suivante",
+        "Test: outbound_reads et claude_sessions persistés avec tailles",
+        "Test: scénario outil interdit => finding sandbox-violation",
+        "Clone supprimé en fin de scan"
+      ],
+      "dependsOn": [
+        "T07",
+        "T08",
+        "T12",
+        "T13",
+        "T03"
+      ],
+      "after": [],
+      "phase": "core",
+      "status": "pending",
+      "commitSha": null,
+      "worktreeDir": null
+    },
+    {
+      "taskKey": "T15",
+      "position": 14,
+      "title": "Module queue: file, concurrence, annulation, reprise",
+      "description": "ENTRÉES: runScanPipeline (T14), repos scans, WsHub.broadcast (T11), cleanupOrphans. SORTIES: server/queue/index.ts: createQueue({config,db,pipeline,broadcast}) avec enqueue(parsedRepo, opts):Scan, cancel(scanId) (killTree par PID, suppression du clone, statut cancelled en <5 s), list(), position(scanId), recover() (scans running => failed 'interrompu' + nettoyage des clones). Concurrence SCANNER_CONCURRENCY (défaut 1), FIFO, diffusion scan.status avec position.",
+      "filesHint": [
+        "docs/INTERFACES.md",
+        "server/analysis/pipeline.ts",
+        "server/ws/index.ts",
+        "server/db/repos/scans.ts"
+      ],
+      "writes": [
+        "server/queue/index.ts",
+        "test/integration/queue.test.ts"
+      ],
+      "acceptance": [
+        "Test: deux scans enchaînés avec concurrence 1, le second a une position 1 puis démarre",
+        "Test: annulation en <5 s => cancelled, clone supprimé, process tué par PID",
+        "Test: redémarrage => scans running marqués failed 'interrompu' et clones nettoyés",
+        "Événements scan.status émis à chaque transition"
+      ],
+      "dependsOn": [
+        "T14",
+        "T11",
+        "T03"
+      ],
+      "after": [],
+      "phase": "core",
+      "status": "pending",
+      "commitSha": null,
+      "worktreeDir": null
+    },
+    {
+      "taskKey": "T16",
+      "position": 15,
+      "title": "Module report: rapport, comparaison, exports",
+      "description": "ENTRÉES: repos db, egress-log.summaryForScan (T11), redactDeep. SORTIES: server/report/index.ts (buildReport(scanId):Report: verdict, score, compteurs par sévérité, usage par passe/scan, récapitulatif sorties: fichiers, octets, destinations, bloquées), compare.ts (compareScans(a,b): nouveaux/résolus/persistants par fingerprint + delta de score, même dépôt requis), export-json.ts (schemaVersion 1, redactDeep), export-md.ts.",
+      "filesHint": [
+        "docs/INTERFACES.md",
+        "shared/types.ts",
+        "server/egress-log/index.ts"
+      ],
+      "writes": [
+        "server/report/index.ts",
+        "server/report/compare.ts",
+        "server/report/export-json.ts",
+        "server/report/export-md.ts",
+        "test/unit/compare.test.ts",
+        "test/unit/report-export.test.ts"
+      ],
+      "acceptance": [
+        "Comparaison: findings classés nouveaux/résolus/persistants et delta de score",
+        "Export JSON contient schemaVersion; Markdown lisible",
+        "Test: aucun export ne contient dataDir, workDir, hostname, username ni token simulé (leak-check)",
+        "Rapport inclut résumé de sorties (fichiers, octets, destinations, bloquées)"
+      ],
+      "dependsOn": [
+        "T03",
+        "T11",
+        "T02"
+      ],
+      "after": [],
+      "phase": "core",
+      "status": "pending",
+      "commitSha": null,
+      "worktreeDir": null
+    },
+    {
+      "taskKey": "T17",
+      "position": 16,
+      "title": "settings-gh: connexion GitHub device flow",
+      "description": "ENTRÉES: runGh, buildEnv, spawnTree, fake-gh. SORTIES: server/settings-gh/device-parse.ts (extraction code à usage unique + URL https://github.com/login/device), server/settings-gh/index.ts: startLogin() (gh auth login --hostname github.com --git-protocol https --web, GH_CONFIG_DIR=<data>/gh, BROWSER neutralisé, finalité settings:gh-login, délai 15 min), getFlow() (états pending|connected|expired|error + code + URL), cancelFlow(), status() (gh auth status sans --show-token + gh api user: connecté, login, scopes), logout() (gh auth logout), verifyStoragePermissions() (dossier 700, fichiers 600, corrige + log).",
+      "filesHint": [
+        "docs/INTERFACES.md",
+        "server/gh/gh-cli.ts",
+        "test/fixtures/fake-gh.mjs"
+      ],
+      "writes": [
+        "server/settings-gh/device-parse.ts",
+        "server/settings-gh/index.ts",
+        "test/unit/device-parse.test.ts",
+        "test/integration/settings-gh.test.ts"
+      ],
+      "acceptance": [
+        "Test fake-gh: startLogin expose code et URL, puis état connected",
+        "Test: annulation et expiration 15 min (timers factices)",
+        "status() ne renvoie jamais de token",
+        "verifyStoragePermissions corrige 755 en 700 et 644 en 600"
+      ],
+      "dependsOn": [
+        "T04",
+        "T05"
+      ],
+      "after": [],
+      "phase": "core",
+      "status": "pending",
+      "commitSha": null,
+      "worktreeDir": null
+    },
+    {
+      "taskKey": "T18",
+      "position": 17,
+      "title": "settings-claude: clé API, console PTY, revérification",
+      "description": "ENTRÉES: spawnLoginPty/pingClaude (T08), umask 077. SORTIES: server/settings-claude/secrets-store.ts (secrets.json 600), server/settings-claude/index.ts (status():{apiKeyMasked:'sk-ant-…xxxx'|null, cliAuthenticated}, setApiKey, deleteApiKey, verify() => 'opérationnel'|'non authentifié'|erreur masquée via pingClaude, openConsole()/closeConsole() avec fermeture auto sur détection de <claude-home>/.claude/.credentials.json ou 15 min), server/ws/pty-bridge.ts (route /ws/pty/:consoleId, relais entrée/sortie/resize, protégé par le même authorize).",
+      "filesHint": [
+        "docs/INTERFACES.md",
+        "server/claude-runner/index.ts",
+        "server/claude-runner/pty.ts"
+      ],
+      "writes": [
+        "server/settings-claude/secrets-store.ts",
+        "server/settings-claude/index.ts",
+        "server/ws/pty-bridge.ts",
+        "test/integration/settings-claude.test.ts"
+      ],
+      "acceptance": [
+        "Test: status() ne renvoie que les 4 derniers caractères de la clé",
+        "secrets.json en permissions 600",
+        "Test verify avec fake-claude: opérationnel / non authentifié / erreur masquée",
+        "Test PTY: console ouverte puis fermée automatiquement après création des credentials (timers factices)"
+      ],
+      "dependsOn": [
+        "T08",
+        "T01"
+      ],
+      "after": [],
+      "phase": "core",
+      "status": "pending",
+      "commitSha": null,
+      "worktreeDir": null
+    },
+    {
+      "taskKey": "T19",
+      "position": 18,
+      "title": "API: erreurs, en-têtes, routes scans/rapports/meta",
+      "description": "ENTRÉES: queue (T15), report (T16), parseRepoInput, auth hook (T10). SORTIES: server/api/errors.ts (AppError, handler uniforme {error:{code,message}} masqué, jamais de stack), server/api/security-headers.ts (CSP default-src 'self', X-Content-Type-Options, Referrer-Policy no-referrer, frame-ancestors 'none'), routes/scans.ts (POST /api/scans 400 si entrée invalide, GET /api/scans filtrés+paginés, GET /api/scans/:id, POST /api/scans/:id/cancel, GET /api/scans/:id/logs, GET /api/scans/:id/outbound), routes/reports.ts (GET /api/scans/:id/report, GET /api/compare?a&b, GET /api/scans/:id/export?format=md|json), routes/meta.ts (GET /api/health, GET /api/disclosure servant content/outbound-disclosure.md), content/outbound-disclosure.md (source unique FR: chaque destination, finalité, données envoyées, moment).",
+      "filesHint": [
+        "docs/INTERFACES.md",
+        "server/queue/index.ts",
+        "server/report/index.ts",
+        "shared/api.ts"
+      ],
+      "writes": [
+        "server/api/errors.ts",
+        "server/api/security-headers.ts",
+        "server/api/routes/scans.ts",
+        "server/api/routes/reports.ts",
+        "server/api/routes/meta.ts",
+        "content/outbound-disclosure.md",
+        "test/integration/api-scans.test.ts"
+      ],
+      "acceptance": [
+        "Test: POST /api/scans avec 'evil.com/x', '../x', '-x' => 400 {error:{code,message}}",
+        "Test: erreur interne => message générique sans stack",
+        "Test: en-têtes CSP/nosniff/no-referrer présents",
+        "Test: export md/json d'un scan terminé retourne le contenu masqué",
+        "disclosure liste api.anthropic.com, github.com et la télémétrie bloquée"
+      ],
+      "dependsOn": [
+        "T15",
+        "T16",
+        "T10",
+        "T01"
+      ],
+      "after": [],
+      "phase": "core",
+      "status": "pending",
+      "commitSha": null,
+      "worktreeDir": null
+    },
+    {
+      "taskKey": "T20",
+      "position": 19,
+      "title": "API: routes sorties réseau, interne egress, paramètres",
+      "description": "ENTRÉES: egress-log (T11), settings-gh (T17), settings-claude (T18), auth hook (T10). SORTIES: routes/egress.ts (GET /api/egress filtres+pagination, GET /api/egress/totals, GET /api/egress/alerts, POST /api/egress/ack), routes/internal.ts (POST /internal/egress/events authentifié par X-Egress-Secret généré dans le volume partagé, hors cookie), routes/settings.ts (GET /api/settings: états GitHub et Claude sans aucun secret; POST/GET/DELETE /api/settings/github/login, POST /api/settings/github/logout; PUT/DELETE /api/settings/claude/api-key, POST /api/settings/claude/verify, POST/DELETE /api/settings/claude/console).",
+      "filesHint": [
+        "docs/INTERFACES.md",
+        "server/egress-log/index.ts",
+        "server/settings-gh/index.ts",
+        "server/settings-claude/index.ts"
+      ],
+      "writes": [
+        "server/api/routes/egress.ts",
+        "server/api/routes/internal.ts",
+        "server/api/routes/settings.ts",
+        "test/integration/api-settings.test.ts"
+      ],
+      "acceptance": [
+        "Test: GET /api/settings ne contient ni clé API en clair ni token",
+        "Test: POST /internal/egress/events sans secret => 401, avec secret => ingéré",
+        "Test: ack remet l'alerte à zéro",
+        "Test: login GitHub (fake-gh) retourne code et URL"
+      ],
+      "dependsOn": [
+        "T11",
+        "T17",
+        "T18",
+        "T10"
+      ],
+      "after": [],
+      "phase": "core",
+      "status": "pending",
+      "commitSha": null,
+      "worktreeDir": null
+    },
+    {
+      "taskKey": "T21",
+      "position": 20,
+      "title": "Câblage backend: app, index, proxy embarqué, démarrage",
+      "description": "ENTRÉES: tous les modules serveur. SORTIES: server/app.ts (buildApp(deps):FastifyInstance enregistrant security-headers, cookie, auth, WsHub, pty-bridge, static dist/web avec fallback SPA, handler d'erreurs), server/api/index.ts (registerApi), server/index.ts (config -> assertStartupAllowed -> umask 077 -> initRedaction -> db -> secret partagé egress -> verifyStoragePermissions -> proxy embarqué sur 127.0.0.1:EGRESS_PORT si SCANNER_EGRESS_URL absent -> undici setGlobalDispatcher(ProxyAgent) -> queue.recover -> listen), test/helpers/start-test-app.ts.",
+      "filesHint": [
+        "docs/INTERFACES.md",
+        "docs/ARCHITECTURE.md",
+        "server/api/routes/",
+        "server/queue/index.ts",
+        "server/egress/proxy.ts"
+      ],
+      "writes": [
+        "server/app.ts",
+        "server/api/index.ts",
+        "server/index.ts",
+        "test/helpers/start-test-app.ts",
+        "test/integration/startup.test.ts"
+      ],
+      "acceptance": [
+        "Test: démarrage avec SCANNER_HOST=0.0.0.0 sans mot de passe => sortie non nulle, message clair",
+        "Test: serveur démarre sur 127.0.0.1 et sert GET /api/health",
+        "Test: un fetch sortant de l'app passe par le proxy",
+        "npm run build produit dist/index.js et dist/egress.js"
+      ],
+      "dependsOn": [
+        "T19",
+        "T20",
+        "T09",
+        "T10",
+        "T15"
+      ],
+      "after": [],
+      "phase": "core",
+      "status": "pending",
+      "commitSha": null,
+      "worktreeDir": null
+    },
+    {
+      "taskKey": "T22",
+      "position": 21,
+      "title": "Test e2e complet et test de fuite",
+      "description": "ENTRÉES: start-test-app, fake CLI, fixture, echo-upstream, leak-check, build dist. SORTIES: test/e2e/full-scan.e2e.test.ts: démarre serveur et proxy en sous-processus (tsx) sur ports dédiés, arrêt par PID; POST /api/scans sur le dépôt fixture, suit la WS jusqu'à done, vérifie rapport (secret critique masqué, pull_request_target, postinstall, injection de prompt, chacun avec fichier:ligne/extrait/explication/correctif), export md/json, journal de sortie (connexion api.anthropic.com + statsig bloquée avec alerte), vue outbound par fichier, et absence de fuites (HOST_SECRET, hostname, username, chemins, token simulé) dans DB, logs, events WS et exports. test/build/dist-no-external.test.ts: vite.build() vers dossier tmp puis scan des src/href/@import/url( http(s) externes.",
+      "filesHint": [
+        "test/helpers/start-test-app.ts",
+        "test/helpers/leak-check.ts",
+        "test/fixtures/make-vuln-repo.ts"
+      ],
+      "writes": [
+        "test/e2e/full-scan.e2e.test.ts",
+        "test/build/dist-no-external.test.ts",
+        "vitest.config.ts"
+      ],
+      "acceptance": [
+        "npm test passe hors ligne en <60 s",
+        "Le e2e atteint le statut done et valide les 4 failles du fixture",
+        "leak-check ne trouve aucune chaîne interdite",
+        "Le test dist échoue si une URL externe est injectée dans un fichier de build"
+      ],
+      "dependsOn": [
+        "T21",
+        "T05"
+      ],
+      "after": [],
+      "phase": "core",
+      "status": "pending",
+      "commitSha": null,
+      "worktreeDir": null
+    },
+    {
+      "taskKey": "T23",
+      "position": 22,
+      "title": "Front: Nouveau scan, File, Suivi en direct",
+      "description": "ENTRÉES: socle web (T06), API POST/GET /api/scans, événements WS scan.*. SORTIES: web/src/pages/{NewScanPage,QueuePage,ScanLivePage}.tsx, composants StepTrack (6 étapes), BudgetGauges, LogTerminal, QueueRow. Formulaire dépôt + ref + 'conserver le clone', erreurs 400 affichées inline; file avec position; suivi live par WS (statut, étape, logs, jauges tokens/coût), bouton annuler. États vide/chargement/erreur sur chaque page.",
+      "filesHint": [
+        "docs/design/",
+        "web/src/components/StateViews.tsx",
+        "web/src/hooks/useWsEvent.ts",
+        "shared/api.ts"
+      ],
+      "writes": [
+        "web/src/pages/NewScanPage.tsx",
+        "web/src/pages/QueuePage.tsx",
+        "web/src/pages/ScanLivePage.tsx",
+        "web/src/components/StepTrack.tsx",
+        "web/src/components/BudgetGauges.tsx",
+        "web/src/components/LogTerminal.tsx",
+        "web/src/components/QueueRow.tsx",
+        "test/web/scan-pages.test.tsx"
+      ],
+      "acceptance": [
+        "Test: saisie 'evil.com/x' affiche l'erreur serveur sous le champ",
+        "Test: événement scan.status met à jour StepTrack sans rechargement",
+        "Test: états vide/chargement/erreur de QueuePage",
+        "À l'écran, la piste à 6 étapes avance en direct, les logs défilent dans le terminal sombre et les jauges budget se remplissent",
+        "À l'écran, un scan en file affiche sa position et un bouton Annuler fonctionnel"
+      ],
+      "dependsOn": [
+        "T06",
+        "T01"
+      ],
+      "after": [],
+      "phase": "core",
+      "status": "pending",
+      "commitSha": null,
+      "worktreeDir": null
+    },
+    {
+      "taskKey": "T24",
+      "position": 23,
+      "title": "Front: Rapport, Historique, Comparaison",
+      "description": "ENTRÉES: socle web (T06), API /api/scans, /api/scans/:id/report, /api/compare, /api/scans/:id/export. SORTIES: web/src/pages/{ReportPage,HistoryPage,ComparePage}.tsx, composants VerdictStamp, ScoreBlock (formule), SeverityCounters, FindingItem (details/summary), FiltersBar (sévérité + catégorie), Pagination, UsageTable, OutboundSummary. Historique filtrable (dépôt, statut, date) paginé; boutons export MD/JSON; sélection de deux scans pour comparer.",
+      "filesHint": [
+        "docs/design/",
+        "web/src/components/StateViews.tsx",
+        "shared/types.ts"
+      ],
+      "writes": [
+        "web/src/pages/ReportPage.tsx",
+        "web/src/pages/HistoryPage.tsx",
+        "web/src/pages/ComparePage.tsx",
+        "web/src/components/VerdictStamp.tsx",
+        "web/src/components/ScoreBlock.tsx",
+        "web/src/components/SeverityCounters.tsx",
+        "web/src/components/FindingItem.tsx",
+        "web/src/components/FiltersBar.tsx",
+        "web/src/components/Pagination.tsx",
+        "web/src/components/UsageTable.tsx",
+        "web/src/components/OutboundSummary.tsx",
+        "test/web/report-pages.test.tsx"
+      ],
+      "acceptance": [
+        "Test: filtre sévérité 'critical' ne montre que les critiques",
+        "Test: ComparePage affiche nouveaux/résolus/persistants et le delta de score",
+        "Test: états vide/chargement/erreur sur les trois pages",
+        "À l'écran, le rapport montre un tampon de verdict incliné, le score, 5 compteurs, des findings dépliables avec fichier:ligne, extrait masqué, explication et correctif",
+        "À l'écran, le récapitulatif des sorties et la consommation tokens/coût sont visibles dans le rapport"
+      ],
+      "dependsOn": [
+        "T06",
+        "T01"
+      ],
+      "after": [],
+      "phase": "core",
+      "status": "pending",
+      "commitSha": null,
+      "worktreeDir": null
+    },
+    {
+      "taskKey": "T25",
+      "position": 24,
+      "title": "Front: Sorties réseau, Vue par scan, page de divulgation",
+      "description": "ENTRÉES: socle web (T06), API /api/egress*, /api/scans/:id/outbound, /api/disclosure, WS egress.event. SORTIES: web/src/pages/{EgressPage,ScanOutboundPage,DisclosurePage}.tsx, composants EgressTable (lignes .blocked/.fresh), EgressTotals (barres), BlockedAlertBanner (bouton acquitter). Filtres destination/finalité/scan/statut/période, pagination, mise à jour live; vue par scan: fichiers transmis avec octets et extraits consultables, total vers Anthropic, connexions et volumes proxy, connexions GitHub; rendu Markdown sûr (sans HTML brut) de la divulgation.",
+      "filesHint": [
+        "docs/design/",
+        "web/src/components/StateViews.tsx",
+        "web/src/hooks/useWsEvent.ts"
+      ],
+      "writes": [
+        "web/src/pages/EgressPage.tsx",
+        "web/src/pages/ScanOutboundPage.tsx",
+        "web/src/pages/DisclosurePage.tsx",
+        "web/src/components/EgressTable.tsx",
+        "web/src/components/EgressTotals.tsx",
+        "web/src/components/BlockedAlertBanner.tsx",
+        "test/web/egress-pages.test.tsx"
+      ],
+      "acceptance": [
+        "Test: egress.event bloqué ajoute une ligne et affiche le bandeau; acquitter appelle POST /api/egress/ack",
+        "Test: filtres envoyés en paramètres de requête",
+        "Test: états vide/chargement/erreur",
+        "À l'écran, une tentative bloquée (ex. statsig.anthropic.com) apparaît en rouge dans le journal avec un bandeau d'alerte",
+        "À l'écran, la vue par scan liste les fichiers lus par Claude avec octets et extrait déroulable"
+      ],
+      "dependsOn": [
+        "T06",
+        "T01"
+      ],
+      "after": [],
+      "phase": "core",
+      "status": "pending",
+      "commitSha": null,
+      "worktreeDir": null
+    },
+    {
+      "taskKey": "T26",
+      "position": 25,
+      "title": "Front: Paramètres (GitHub, Claude) et Connexion",
+      "description": "ENTRÉES: socle web (T06), API /api/settings*, /api/auth/*, WS settings.gh_login et /ws/pty/:id. SORTIES: web/src/pages/{SettingsPage,LoginPage}.tsx, web/src/components/XtermConsole.tsx (@xterm/xterm + addon-fit, embarqué localement). GitHub: bouton Se connecter, code et URL du device flow, états en attente/connecté/expiré/erreur, annuler, déconnexion. Claude: console xterm de login, saisie clé API (lecture seule après enregistrement, affiche sk-ant-…xxxx, Supprimer), bouton Revérifier avec résultat. Jamais de secret réaffiché.",
+      "filesHint": [
+        "docs/design/",
+        "web/src/api/client.ts",
+        "shared/api.ts"
+      ],
+      "writes": [
+        "web/src/pages/SettingsPage.tsx",
+        "web/src/pages/LoginPage.tsx",
+        "web/src/components/XtermConsole.tsx",
+        "test/web/settings-pages.test.tsx"
+      ],
+      "acceptance": [
+        "Test: réponse GitHub pending affiche le code et l'URL du device flow",
+        "Test: après enregistrement le champ clé est désactivé et n'affiche que la forme masquée",
+        "Test: Revérifier affiche opérationnel / non authentifié / erreur",
+        "Test: états vide/chargement/erreur",
+        "À l'écran, le code du device flow est grand et lisible, l'état passe à Connecté sans recharger",
+        "À l'écran, la console de login Claude s'ouvre dans un terminal xterm et se ferme après connexion"
+      ],
+      "dependsOn": [
+        "T06",
+        "T01"
+      ],
+      "after": [],
+      "phase": "core",
+      "status": "pending",
+      "commitSha": null,
+      "worktreeDir": null
+    },
+    {
+      "taskKey": "T27",
+      "position": 26,
+      "title": "Câblage front: routes, navigation, intégration finale",
+      "description": "ENTRÉES: toutes les pages et composants web (T23–T26), AppShell/Nav (T06). SORTIES: web/src/App.tsx (React Router: /, /queue, /scans/:id, /scans/:id/report, /scans/:id/outbound, /history, /compare, /egress, /settings, /disclosure, /login, NotFoundPage), web/src/pages/NotFoundPage.tsx, redirection vers /login si 401, badge d'alertes bloquées dans la Nav alimenté par /api/egress/alerts et WS, composant HazardTape, import dans main.tsx. Vérifie que le build Vite produit dist/web et que chaque page est importée.",
+      "filesHint": [
+        "web/src/main.tsx",
+        "web/src/components/Nav.tsx",
+        "web/src/pages/"
+      ],
+      "writes": [
+        "web/src/App.tsx",
+        "web/src/pages/NotFoundPage.tsx",
+        "web/src/components/HazardTape.tsx",
+        "web/src/main.tsx",
+        "web/src/components/Nav.tsx",
+        "test/web/app-routes.test.tsx"
+      ],
+      "acceptance": [
+        "Test: chaque route rend sa page; route inconnue => NotFoundPage",
+        "Test: 401 => redirection /login",
+        "Test: badge de la nav visible quand une alerte non acquittée existe",
+        "npm run build produit dist/web sans erreur",
+        "À l'écran, après un scan sur le fixture, on navigue Nouveau scan -> Suivi -> Rapport -> Sorties réseau sans recharger la page, et le badge rouge clignote après un blocage"
+      ],
+      "dependsOn": [
+        "T23",
+        "T24",
+        "T25",
+        "T26"
+      ],
+      "after": [],
+      "phase": "core",
+      "status": "pending",
+      "commitSha": null,
+      "worktreeDir": null
+    },
+    {
+      "taskKey": "T28",
+      "position": 27,
+      "title": "Dockerfile et docker-compose durcis",
+      "description": "ENTRÉES: ARCHITECTURE §6, F15, scripts build. SORTIES: Dockerfile multi-stage (build node:22-slim + python3/make/g++, npm ci, npm run build, npm prune --omit=dev; runtime node:22-slim avec git, gh (tarball épinglé + sha256), @anthropic-ai/claude-code version épinglée, utilisateur scanner UID 10001, ENV télémétrie F14, CMD node dist/index.js), docker-compose.yml (services app sur réseau internal:true seul et egress sur internal+outside, commande node dist/egress.js, read_only, tmpfs /tmp, cap_drop ALL, no-new-privileges, user 10001, volumes nommés scanner-data et egress-shared, aucun bind-mount ni docker.sock ni env_file, port 127.0.0.1:8417:8417 porté par egress avec relais vers app), .dockerignore, test/unit/docker-compose.test.ts qui parse le YAML et vérifie ces invariants.",
+      "filesHint": [
+        "docs/ARCHITECTURE.md",
+        "package.json",
+        "server/egress/ingress-relay.ts"
+      ],
+      "writes": [
+        "Dockerfile",
+        "docker-compose.yml",
+        ".dockerignore",
+        "test/unit/docker-compose.test.ts"
+      ],
+      "acceptance": [
+        "Test: compose a 2 services, réseau internal avec internal:true, cap_drop ALL, read_only, no-new-privileges, user 10001",
+        "Test: aucun volume bind ni docker.sock ni env_file",
+        "Test: port publié uniquement sur 127.0.0.1:8417",
+        "Dockerfile contient USER 10001 et versions épinglées (aucun 'latest')"
+      ],
+      "dependsOn": [
+        "T21",
+        "T09"
+      ],
+      "after": [],
+      "phase": "core",
+      "status": "pending",
+      "commitSha": null,
+      "worktreeDir": null
+    },
+    {
+      "taskKey": "T29",
+      "position": 28,
+      "title": "README en français et mise à jour des docs",
+      "description": "ENTRÉES: content/outbound-disclosure.md, docker-compose.yml, config schema (variables), écrans finaux. SORTIES: README.md en français: installation serveur (docker compose up) et PC (npm run start, limites sans réseau internal), première connexion (GitHub, Claude), tableau complet des variables d'environnement, modèle de menaces (dépôt malveillant, injection de prompt, fuite d'identité, exfiltration via Claude, UI exposée + reverse proxy conseillé), limites connues (relais ingress, statsig bloqué, base de vulnérabilités commentée), section 'Ce que ce logiciel envoie et à qui' identique à content/outbound-disclosure.md; test/unit/readme.test.ts (égalité de la section avec le fichier de contenu, présence de toutes les variables); docs/ARCHITECTURE.md, docs/INTERFACES.md et docs/PROGRESS.md à jour.",
+      "filesHint": [
+        "content/outbound-disclosure.md",
+        "docker-compose.yml",
+        "server/config/schema.ts",
+        "docs/PROGRESS.md"
+      ],
+      "writes": [
+        "README.md",
+        "test/unit/readme.test.ts",
+        "docs/ARCHITECTURE.md",
+        "docs/INTERFACES.md",
+        "docs/PROGRESS.md"
+      ],
+      "acceptance": [
+        "Test: la section 'Ce que ce logiciel envoie et à qui' du README est identique à content/outbound-disclosure.md",
+        "Test: chaque variable du schéma de config figure dans le tableau du README",
+        "README contient modèle de menaces, limites, installation serveur et PC"
+      ],
+      "dependsOn": [
+        "T19",
+        "T28",
+        "T27"
+      ],
+      "after": [
+        "T22"
+      ],
+      "phase": "core",
+      "status": "pending",
+      "commitSha": null,
+      "worktreeDir": null
+    },
+    {
+      "taskKey": "T30",
+      "position": 29,
+      "title": "Finition visuelle: transitions et micro-interactions",
+      "description": "ENTRÉES: UI complète et câblée. SORTIES: raffinements dans web/src/styles/app.css uniquement: animation d'apparition du tampon de verdict (rotation + léger rebond), remplissage animé des jauges et du score, surbrillance .fresh des nouvelles lignes de sorties réseau, clignotement du badge d'alerte, transitions d'ouverture des findings, états focus/hover accessibles, respect de prefers-reduced-motion. Aucune ressource externe, CSP respectée (pas de style inline dynamique supplémentaire).",
+      "filesHint": [
+        "web/src/styles/app.css",
+        "docs/design/"
+      ],
+      "writes": [
+        "web/src/styles/app.css"
+      ],
+      "acceptance": [
+        "Test: app.css ne contient aucune URL http(s) externe ni @import distant",
+        "Le build Vite reste valide",
+        "À l'écran, à l'ouverture du rapport le tampon pivote et rebondit une fois, les jauges se remplissent progressivement",
+        "À l'écran, une nouvelle ligne de sortie réseau clignote brièvement puis se stabilise",
+        "Avec prefers-reduced-motion, aucune animation ne se joue"
+      ],
+      "dependsOn": [
+        "T27"
+      ],
+      "after": [
+        "T27",
+        "T29"
+      ],
+      "phase": "polish",
+      "status": "pending",
+      "commitSha": null,
+      "worktreeDir": null
+    }
+  ]
+}
