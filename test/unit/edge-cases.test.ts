@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { isValidRef, parseRepoInput } from '../../server/repo-input/index.js';
 import { computeScore } from '../../server/analysis/score.js';
-import { mergeFindings, type RawFinding } from '../../server/analysis/merge.js';
+import { mergeFindings } from '../../server/analysis/merge.js';
+import type { RawFinding } from '../../server/analysis/types.js';
 import { fingerprintOf } from '../../server/analysis/fingerprint.js';
 import { BudgetTracker } from '../../server/analysis/budget.js';
 import { parseAllowlist } from '../../server/egress/allowlist.js';
