@@ -312,3 +312,6 @@ Ces éléments doivent être livrés pleinement et être visibles dans le produi
 7. `Dockerfile` et `docker-compose.yml` respectent F15 : deux services, réseau `internal`, durcissements, aucun montage de l'hôte, port 8417 sur 127.0.0.1.
 8. Le README en français est complet (installation serveur et PC, variables, modèle de menaces, limites, « Ce que ce logiciel envoie et à qui »). `docs/ARCHITECTURE.md`, `docs/INTERFACES.md` et `docs/PROGRESS.md` sont à jour.
 9. Toutes les vues ont leurs états vides, de chargement et d'erreur. Aucune ressource externe ne figure dans le build du front (vérifié par un test).
+
+## Micro-révisions
+- T31 (2026-10-21): le site fait vieux, rend le moderne en terme de design

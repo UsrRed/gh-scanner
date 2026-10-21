@@ -1073,6 +1073,41 @@
       "status": "done",
       "commitSha": "6ebceb1191bc07030fb1113de39e6795d289d1bb",
       "worktreeDir": null
+    },
+    {
+      "taskKey": "T31",
+      "position": 30,
+      "title": "Moderniser le design global de l'UI (tokens, shell, composants de base)",
+      "description": "Rafraîchir l'apparence de l'interface pour un rendu moderne, uniquement via la couche de style globale (tokens de thème et CSS des composants partagés), sans changer la structure des pages, la logique, les routes ni les contrats d'INTERFACES (aucune modification de contrat). Consulter docs/ARCHITECTURE.md pour localiser la feuille de styles/thème du front et le shell, et docs/design/ pour rester cohérent avec la maquette (hiérarchie, structure).\n\nEntrées: feuille de styles/tokens de thème existants du front, composants partagés (shell/navigation, boutons, cartes, tableaux, badges de sévérité, champs de formulaire, barres de progression).\nSorties: styles mis à jour pour:\n- une typographie moderne via pile de polices système (aucune police ni ressource externe, conformément à la SPEC), échelle de tailles et interlignes plus aérés;\n- une palette plus actuelle et sobre (fonds nuancés, bordures fines à faible contraste, couleur d'accent unique), en conservant le thème clair/sombre s'il existe;\n- rayons plus généreux, ombres douces à plusieurs niveaux, espacements cohérents (échelle de spacing);\n- cartes, tableaux (lignes avec survol, en-têtes discrets), boutons (primaire/secondaire/fantôme, états hover/focus-visible/disabled), champs de formulaire et badges (pilules colorées) restylés;\n- barre de navigation/shell plus épurée (état actif clair, sticky avec léger flou ou fond translucide) et mise en page centrée avec largeur maximale confortable;\n- respect de prefers-reduced-motion pour les transitions déjà présentes.\nLes tests existants (unitaires, e2e, fuite) doivent continuer à passer; aucune ressource externe ajoutée.",
+      "filesHint": [
+        "docs/ARCHITECTURE.md",
+        "docs/design/",
+        "web/src/styles/",
+        "web/src/components/",
+        "web/src/App.tsx",
+        "web/index.html"
+      ],
+      "writes": [
+        "docs/ARCHITECTURE.md",
+        "docs/design/",
+        "web/src/styles/",
+        "web/src/components/",
+        "web/src/App.tsx",
+        "web/index.html"
+      ],
+      "acceptance": [
+        "Le rendu visuel des pages principales (Nouveau scan, File, Rapport, Sorties réseau, Paramètres) est nettement modernisé: nouvelle typographie système, palette, rayons, ombres et espacements cohérents, sans régression de lisibilité ni de contraste (thème clair et sombre si présents).",
+        "Boutons, champs, cartes, tableaux, badges de sévérité et navigation affichent des états hover, focus-visible et disabled distincts.",
+        "Aucune requête vers un domaine externe (polices, CDN, icônes) n'est ajoutée; le build et la suite de tests existante (dont le test de fuite) passent.",
+        "Structure des pages, routes, API et docs/INTERFACES.md inchangés; la mise en page reste utilisable sur écran étroit (≈375 px) sans débordement horizontal.",
+        "Une entrée est ajoutée à docs/PROGRESS.md décrivant le rafraîchissement visuel."
+      ],
+      "dependsOn": [],
+      "after": [],
+      "phase": "core",
+      "status": "pending",
+      "commitSha": null,
+      "worktreeDir": null
     }
   ]
 }
