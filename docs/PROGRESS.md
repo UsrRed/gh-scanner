@@ -23,3 +23,4 @@
 - 2026-10-21T11:13:24.204Z — T09 terminé (Module egress: proxy CONNECT, allowlist, journal, relais)
 - 2026-10-21T11:14:18.936Z — T10 terminé (Module auth: mot de passe, sessions, CSRF, rate-limit)
 - T11: WsHub.register is async with optional authorize; EgressLog gains acknowledge/summaryForScan (INTERFACES updated); ws + @types/ws added as devDeps.
+- 2026-10-21T11:15:31.198Z — T11 terminé (Hub WebSocket et module egress-log)
