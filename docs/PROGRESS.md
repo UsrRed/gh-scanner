@@ -38,3 +38,5 @@
 - T18: settings-claude (secrets-store, console PTY auto-close, verify) + ws/pty-bridge; not yet wired into app (API routes pending).
 - 2026-10-21T13:10:56.234Z — T18 terminé (settings-claude: clé API, console PTY, revérification)
 - 2026-10-21T13:12:39.435Z — T19 terminé (API: erreurs, en-têtes, routes scans/rapports/meta)
+
+- T20: routes `egress.ts`, `internal.ts`, `settings.ts` (server/api/routes); alias `/api/egress` et `/api/egress/ack` ajoutés (INTERFACES.md §4).

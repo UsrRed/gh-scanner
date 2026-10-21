@@ -290,6 +290,7 @@ Erreur : `{ "error": { "code": ErrorCode, "message": string } }`. Mutations (POS
 | GET | /api/egress/totals | mêmes filtres | `{ destinations: OutboundSummary['destinations'] }` |
 | GET | /api/egress/alerts | — | `AlertState` |
 | POST | /api/egress/alerts/ack | — | `AlertState` |
+| GET/POST | /api/egress, /api/egress/ack | alias de `/api/egress/events` et `/api/egress/alerts/ack` | idem |
 | GET | /api/settings | — | `SettingsView` (jamais de secret) |
 | POST | /api/settings/github/login | — | 202 `GhFlow` (409 si en cours) |
 | GET | /api/settings/github/login/:flowId | — | `GhFlow` |
