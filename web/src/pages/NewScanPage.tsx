@@ -52,7 +52,7 @@ export function NewScanPage() {
             Conserver le clone après le scan
           </label>
           {otherErr && <div className="err-box" role="alert"><code>{otherErr.code}</code>{otherErr.message}</div>}
-          <div><button type="submit" className="btn primary" disabled={busy || !repo.trim()}>{busy ? 'Envoi…' : 'Lancer le scan'}</button></div>
+          <div><button type="submit" className="btn primary" aria-busy={busy} disabled={busy || !repo.trim()}>{busy ? 'Envoi…' : 'Lancer le scan'}</button></div>
         </div>
       </form>
     </>

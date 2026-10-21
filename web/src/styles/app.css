@@ -247,3 +247,16 @@ body{background:var(--paper)}
 .btn{transition:background-color .15s,transform .1s}
 .btn:active{transform:translateY(1px)}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+
+/* ---------- polish: controls ---------- */
+.btn:hover:not(:disabled){background:var(--paper-2)}
+.btn.primary:hover:not(:disabled){background:#000}
+.btn.danger:hover:not(:disabled){background:var(--crit);color:#fff}
+.btn:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
+.btn[aria-busy="true"]:after,.btn.busy:after{content:"";width:10px;height:10px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin .7s linear infinite}
+.field input:hover,.field select:hover{border-color:var(--petrol)}
+.field input:focus,.field select:focus{outline:2px solid var(--quarantine);outline-offset:1px}
+.field input::placeholder{color:var(--ink-3);opacity:.8}
+input[type=checkbox]{accent-color:var(--ink);width:15px;height:15px}
+::selection{background:var(--quarantine);color:var(--quarantine-ink)}
+@keyframes spin{to{transform:rotate(360deg)}}
