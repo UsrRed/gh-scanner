@@ -60,3 +60,5 @@
 - 2026-10-21T13:29:41.651Z — T29 terminé (README en français et mise à jour des docs)
 - 2026-10-21T13:30:57.387Z — T30 terminé (Finition visuelle: transitions et micro-interactions)
 - F15: écart du port publié par egress conservé (contrainte Docker réseau internal); Docker absent de l'environnement, validation compose réelle non faisable; limite ajoutée au README.
+- 2026-10-21T13:40:43.991Z — audit: éléments partiels restants (F6, F15) — voir docs/FEATURE_AUDIT.md
+- 2026-10-21T13:42:20.110Z — vérification finale OK — prêt à déployer
