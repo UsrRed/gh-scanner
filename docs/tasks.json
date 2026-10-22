@@ -1108,6 +1108,40 @@
       "status": "done",
       "commitSha": "a2ebe174367a5e4fa2fa697b5df5d27cb151a582",
       "worktreeDir": null
+    },
+    {
+      "taskKey": "T32",
+      "position": 31,
+      "title": "Export PDF du rapport de scan (impression navigateur, sans dépendance externe)",
+      "description": "Ajouter un export PDF du rapport d'un scan, en plus des exports Markdown et JSON existants (UC5). Approche sans nouvelle dépendance ni ressource externe : une feuille de style d'impression (`@media print`) dédiée à la page Rapport et un bouton « Exporter en PDF » qui appelle `window.print()` (l'utilisateur choisit « Enregistrer au format PDF »). En impression, masquer le shell (navigation, barre latérale, boutons, transitions) et ne garder que le contenu du rapport : en-tête (dépôt, ref, commit, date), score et verdict, compteurs par sévérité, findings (snippets masqués déjà fournis par l'API), passes, récapitulatif des sorties réseau. Éviter les coupures de page à l'intérieur d'une carte de finding (`break-inside: avoid`), forcer un fond clair et des couleurs de sévérité lisibles. Le contenu imprimé provient uniquement des données déjà masquées du rapport : aucune donnée identifiante ajoutée, aucun appel réseau, aucune modification des contrats d'INTERFACES ni des routes API. Fichiers concernés : la page Rapport du front, le bouton à côté des actions d'export existantes, la feuille de style globale (bloc print). Ajouter un test (composant ou unitaire) vérifiant la présence du bouton et l'appel à `window.print`, et l'ajouter à la commande de test existante. Ne pas toucher à .github/workflows/*. Mentionner brièvement l'export PDF dans le README (français).",
+      "filesHint": [
+        "docs/ARCHITECTURE.md",
+        "web/src/pages/Report.tsx",
+        "web/src/styles/global.css",
+        "README.md",
+        "docs/PROGRESS.md"
+      ],
+      "writes": [
+        "docs/ARCHITECTURE.md",
+        "web/src/pages/Report.tsx",
+        "web/src/styles/global.css",
+        "README.md",
+        "docs/PROGRESS.md"
+      ],
+      "acceptance": [
+        "Sur la page d'un rapport, un bouton « Exporter en PDF » est visible à côté des exports Markdown/JSON.",
+        "Un clic sur le bouton ouvre la boîte d'impression du navigateur (window.print) permettant d'enregistrer en PDF.",
+        "L'aperçu d'impression n'affiche ni navigation, ni barre latérale, ni boutons : uniquement le contenu du rapport (score, verdict, compteurs, findings, passes, récapitulatif des sorties).",
+        "Aucune carte de finding n'est coupée entre deux pages (break-inside: avoid) et le rendu est en fond clair lisible.",
+        "Le PDF ne contient aucun chemin absolu, nom d'hôte, token ni autre donnée identifiante (mêmes données masquées que l'API du rapport).",
+        "Aucune nouvelle dépendance, aucune requête réseau supplémentaire ; les tests existants et le nouveau test du bouton passent."
+      ],
+      "dependsOn": [],
+      "after": [],
+      "phase": "core",
+      "status": "pending",
+      "commitSha": null,
+      "worktreeDir": null
     }
   ]
 }

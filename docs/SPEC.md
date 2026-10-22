@@ -314,4 +314,5 @@ Ces éléments doivent être livrés pleinement et être visibles dans le produi
 9. Toutes les vues ont leurs états vides, de chargement et d'erreur. Aucune ressource externe ne figure dans le build du front (vérifié par un test).
 
 ## Micro-révisions
+- T32 (2026-10-22): ajoute un export pdf du scan
 - T31 (2026-10-21): le site fait vieux, rend le moderne en terme de design
