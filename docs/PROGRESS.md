@@ -71,3 +71,4 @@ Style global modernisé (tokens.css + bloc « modern refresh » en fin d'app.css
 
 ## T32 — Export PDF
 Bouton « Exporter en PDF » (window.print) + bloc @media print dans web/src/styles/app.css; aucun contrat modifié.
+- 2026-10-22T12:01:56.247Z — T32 terminé (Export PDF du rapport de scan (impression navigateur, sans dépendance externe))
