@@ -11,6 +11,7 @@ import { BudgetTracker } from './budget.js';
 import { runLocalDetectors } from './detectors/index.js';
 import { fingerprintOf } from './fingerprint.js';
 import { mergeFindings } from './merge.js';
+import { resolveRisk } from './risk.js';
 import { runMapping } from './passes/mapping.js';
 import type { PassEnv } from './passes/session.js';
 import { runSynthesis } from './passes/synthesis.js';
@@ -126,7 +127,7 @@ export async function runScanPipeline(input: PipelineInput): Promise<ScanOutcome
       for (const f of merged) {
         const snippet = f.snippet ?? await extractSnippet(clone.dir, f.file, f.line);
         out.push({ id: randomUUID(), scanId: id, severity: f.severity, category: f.category, rule: f.rule, title: f.title, file: f.file,
-          line: f.line, snippet, explanation: f.explanation, fix: f.fix, source: f.source, fingerprint: fingerprintOf({ rule: f.rule, file: f.file, snippet }) });
+          line: f.line, snippet, explanation: f.explanation, fix: f.fix, source: f.source, fingerprint: fingerprintOf({ rule: f.rule, file: f.file, snippet }), risk: resolveRisk(f) });
       }
       return out;
     };

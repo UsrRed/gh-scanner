@@ -18,7 +18,8 @@ afterEach(() => { db.close(); rmSync(dir, { recursive: true, force: true }); });
 
 const finding = (id: string, scanId: string, over: Partial<Finding> = {}): Finding => ({
   id, scanId, severity: 'high', category: 'secrets', rule: 'r', title: 't', file: 'a.js', line: 3, snippet: 's',
-  explanation: 'e', fix: 'f', source: 'local', fingerprint: 'x'.repeat(64), ...over });
+  explanation: 'e', fix: 'f', source: 'local', fingerprint: 'x'.repeat(64),
+  risk: { vulnerability: 'v', threat: 'th', probability: 'high', impact: 'high' }, ...over });
 const ev = (id: string, over: Partial<EgressEvent> = {}): EgressEvent => ({ id, startedAt: '2026-01-01T00:00:00Z', endedAt: '2026-01-01T00:00:01Z',
   host: 'api.anthropic.com', port: 443, bytesUp: 10, bytesDown: 20, durationMs: 1000, status: 'ok', httpStatus: 200, blocked: false,
   purpose: 'app', scanId: null, error: null, ...over });
@@ -26,7 +27,7 @@ const ev = (id: string, over: Partial<EgressEvent> = {}): EgressEvent => ({ id, 
 describe('migrations', () => {
   it('are idempotent across opens', () => {
     const before = db.raw.prepare('SELECT * FROM schema_migrations').all();
-    expect(before).toHaveLength(1);
+    expect(before).toHaveLength(2);
     db.close();
     db = openDb(join(dir, 'scanner.db'));
     expect(db.raw.prepare('SELECT * FROM schema_migrations').all()).toEqual(before);

@@ -73,3 +73,6 @@ Style global modernisé (tokens.css + bloc « modern refresh » en fin d'app.css
 Bouton « Exporter en PDF » (window.print) + bloc @media print dans web/src/styles/app.css; aucun contrat modifié.
 - 2026-10-22T12:01:56.247Z — T32 terminé (Export PDF du rapport de scan (impression navigateur, sans dépendance externe))
 - 2026-10-22T12:02:32.220Z — vérification finale OK — prêt à déployer
+
+## T33 — Matrice de risque
+Contrat modifié (additif) : `RiskLevel`, `RiskMatrix`, `Finding.risk` (shared/types.ts, docs/INTERFACES.md). Migration SQLite v2 (`findings.risk_json`, NULL ⇒ matrice dérivée à la lecture). Sortie Claude : champs optionnels `vulnerability/threat/probability/impact` (valeurs invalides ⇒ dérivation, `server/analysis/risk.ts`). Prompts VERSION 2. UI Rapport/Comparaison, export MD/JSON/PDF incluent la matrice.

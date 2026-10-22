@@ -10,7 +10,8 @@ const usage = { inputTokens: 1500, outputTokens: 20, cacheReadTokens: 0, cacheCr
 const mkScan = (o: object = {}) => ({ id: 's1abcdefgh', repo: 'a/b', ref: null, keepClone: false, status: 'done', failure: null, queuePosition: null,
   commitSha: 'abcdef123', createdAt: '2026-01-01T00:00:00Z', startedAt: null, finishedAt: null, usage, score: 21, claudeVerdict: 'do-not-install', previousScanId: null, ...o });
 const mkF = (id: string, severity: string, category = 'secrets') => ({ id, scanId: 's1', severity, category, rule: 'r', title: `T-${id}`, file: 'x/y.env', line: 12,
-  snippet: 'KEY=AKIA…', explanation: `expl-${id}`, fix: `fix-${id}`, source: 'local', fingerprint: 'a'.repeat(64) });
+  snippet: 'KEY=AKIA…', explanation: `expl-${id}`, fix: `fix-${id}`, source: 'local', fingerprint: 'a'.repeat(64),
+  risk: { vulnerability: 'vuln-x', threat: 'threat-x', probability: 'very-high', impact: 'low' } });
 const json = (b: unknown, status = 200) => new Response(JSON.stringify(b), { status });
 const report = {
   scan: mkScan(), score: 21, scoreFormula: '100 − 40×1 crit. = 60', claudeVerdict: 'do-not-install', justification: 'Dangereux.',
@@ -32,6 +33,9 @@ describe('ReportPage', () => {
     expect(document.querySelectorAll('.counters > div')).toHaveLength(5);
     expect(screen.getAllByText('x/y.env:12', { selector: '.loc' }).length).toBe(2);
     expect(screen.getByText('expl-1')).toBeTruthy();
+    expect(screen.getAllByText('Matrice de risque').length).toBe(2);
+    expect(screen.getAllByText('très élevée').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('vuln-x').length).toBeGreaterThan(0);
     expect(screen.getByText('fix-1')).toBeTruthy();
     expect(screen.getByText('Récapitulatif des sorties')).toBeTruthy();
     expect(screen.getByTestId('usage-total')).toBeTruthy();

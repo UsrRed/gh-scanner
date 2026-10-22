@@ -1,3 +1,3 @@
-import type { Finding } from '../../shared/types.js';
+import type { Finding, RiskMatrix } from '../../shared/types.js';
 
-export interface RawFinding extends Omit<Finding, 'id' | 'scanId' | 'fingerprint' | 'snippet'> { snippet?: string }
+export interface RawFinding extends Omit<Finding, 'id' | 'scanId' | 'fingerprint' | 'snippet' | 'risk'> { snippet?: string; risk?: Partial<RiskMatrix> }

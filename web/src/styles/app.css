@@ -398,6 +398,19 @@ tr.blocked:hover td{background:#F2CBC6}
   .page-h h2{font-size:22px}
 }
 
+/* Risk matrix */
+.risk h4{margin:0 0 4px;font:700 11px var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3)}
+.risk-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:var(--s2)}
+.risk-grid>div{border:1px solid var(--rule);padding:6px 8px;display:grid;gap:3px;align-content:start}
+.risk .k{font:700 10px var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3)}
+.risk .lvl{font:700 11px var(--mono);text-transform:uppercase;padding:1px 6px;border-left:4px solid;justify-self:start}
+.risk .lvl.very-low{color:var(--info);background:var(--info-bg);border-color:var(--info)}
+.risk .lvl.low{color:var(--low);background:var(--low-bg);border-color:var(--low)}
+.risk .lvl.medium{color:var(--med);background:var(--med-bg);border-color:var(--med)}
+.risk .lvl.high{color:var(--high);background:var(--high-bg);border-color:var(--high)}
+.risk .lvl.very-high{color:var(--crit);background:var(--crit-bg);border-color:var(--crit)}
+.cmp-col .item .risk{display:none}
+
 /* Print / PDF export (report page) */
 @media print {
   :root{color-scheme:light}
@@ -413,6 +426,8 @@ tr.blocked:hover td{background:#F2CBC6}
   .finding.high{border-left-color:#b34700}
   .finding.medium{border-left-color:#7a6200}
   .finding.low,.finding.info{border-left-color:#555}
+  .risk,.risk-grid>div{break-inside:avoid}
+  .risk .lvl{background:#fff!important;color:#000!important}
   pre,.snip{white-space:pre-wrap;word-break:break-word;color:#000!important;background:#f4f4f4!important}
   a{color:#000!important;text-decoration:none}
 }

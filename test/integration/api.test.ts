@@ -84,7 +84,7 @@ describe('api', () => {
     repos.scans.update(id, { status: 'done', finishedAt: new Date().toISOString() });
     const token = 'ghp_' + 'a'.repeat(36);
     repos.findings.insertMany([{ id: 'fid1', scanId: id, severity: 'high', category: 'secrets', rule: 'r', title: 't', file: 'a.js', line: 1,
-      snippet: `x=${token}`, explanation: 'e', fix: 'f', source: 'local', fingerprint: 'f'.repeat(64) }]);
+      snippet: `x=${token}`, explanation: 'e', fix: 'f', source: 'local', fingerprint: 'f'.repeat(64), risk: { vulnerability: 'v', threat: 'th', probability: 'high', impact: 'high' } }]);
     const md = await app.inject(`/api/scans/${id}/export?format=md`);
     expect(md.headers['content-type']).toMatch(/text\/markdown/);
     expect(md.headers['content-disposition']).toMatch(/attachment/);

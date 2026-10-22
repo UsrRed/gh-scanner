@@ -2,6 +2,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import type { Comparison, Finding } from '../../../shared/types';
 import { EmptyState, ErrorState, LoadingState } from '../components/StateViews';
 import { PageHeader } from '../components/PageHeader';
+import { RiskMatrix } from '../components/RiskMatrix';
 import { SeverityBadge } from '../components/SeverityBadge';
 import { useApi } from '../hooks/useApi';
 
@@ -9,7 +10,7 @@ function Column({ title, items, cls, id }: { title: string; items: Finding[]; cl
   return (
     <div className={`cmp-col${cls ? ` ${cls}` : ''}`} data-col={id}>
       <h3>{title}<b>{items.length}</b></h3>
-      {items.map((f) => <div className="item" key={f.id}><SeverityBadge severity={f.severity} /><span className="ttl">{f.title}</span></div>)}
+      {items.map((f) => <div className="item" key={f.id}><SeverityBadge severity={f.severity} /><span className="ttl">{f.title}</span><RiskMatrix risk={f.risk} /></div>)}
     </div>
   );
 }

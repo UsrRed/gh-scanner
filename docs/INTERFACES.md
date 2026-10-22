@@ -30,7 +30,10 @@ export interface Finding {
   id: string; scanId: string; severity: Severity; category: FindingCategory; rule: string;
   title: string; file: string /* relatif */; line: number|null; snippet: string /* masqué, ≤20 lignes */;
   explanation: string; fix: string; source: 'claude'|'local'; fingerprint: string /* sha256 hex */;
+  risk: RiskMatrix;   // T33, additif; dérivé de category+severity si absent (anciens scans)
 }
+export type RiskLevel = 'very-low'|'low'|'medium'|'high'|'very-high';
+export interface RiskMatrix { vulnerability: string; threat: string; probability: RiskLevel; impact: RiskLevel }
 
 export interface PassUsage { pass: PassName; batch: string|null; model: string; usage: Usage;
   status: 'ok'|'error'|'killed'|'budget_exceeded' }

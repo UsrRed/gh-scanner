@@ -7,5 +7,8 @@ import { runPassSession, type PassEnv } from './session.js';
 export async function runTargeted(env: PassEnv, o: { model: string; repo: string; batch: string; mapping: MappingOutputT | null }): Promise<RawFinding[]> {
   const prompt = renderPrompt('targeted', { repo: o.repo, batch: o.batch, mapping: JSON.stringify(o.mapping ?? {}) });
   const out = await runPassSession(env, { pass: 'targeted', batch: o.batch, model: o.model, prompt, schema: TargetedOutput });
-  return out.findings.map((f) => ({ ...f, source: 'claude' as const }));
+  return out.findings.map(({ vulnerability, threat, probability, impact, ...f }) => ({
+    ...f, source: 'claude' as const,
+    risk: { vulnerability, threat, probability, impact } as RawFinding['risk'],
+  }));
 }

@@ -21,10 +21,13 @@ export interface Scan {
   usage: Usage; score: number | null; claudeVerdict: Verdict | null; previousScanId: string | null;
 }
 
+export type RiskLevel = 'very-low' | 'low' | 'medium' | 'high' | 'very-high';
+export interface RiskMatrix { vulnerability: string; threat: string; probability: RiskLevel; impact: RiskLevel }
+
 export interface Finding {
   id: string; scanId: string; severity: Severity; category: FindingCategory; rule: string;
   title: string; file: string; line: number | null; snippet: string;
-  explanation: string; fix: string; source: 'claude' | 'local'; fingerprint: string;
+  explanation: string; fix: string; source: 'claude' | 'local'; fingerprint: string; risk: RiskMatrix;
 }
 
 export interface PassUsage {

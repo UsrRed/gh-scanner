@@ -14,7 +14,7 @@ let dir: string; let db: Db; let repos: Repos; let svc: ReportService;
 const usage = { inputTokens: 10, outputTokens: 5, cacheReadTokens: 0, cacheCreationTokens: 0, costUsd: 0.01 };
 const fnd = (scanId: string, id: string, fp: string, severity: Severity, extra: Partial<Finding> = {}): Finding => ({
   id, scanId, severity, category: 'secrets', rule: 'r', title: 'T ' + id, file: 'a.js', line: 1, snippet: 'x', explanation: 'e', fix: 'f',
-  source: 'local', fingerprint: fp, ...extra });
+  source: 'local', fingerprint: fp, risk: { vulnerability: 'v', threat: 'th', probability: 'medium', impact: 'medium' }, ...extra });
 
 beforeEach(() => {
   initRedaction({ dataDir: DATA, workDir: WORK, hostname: os.hostname(), username: os.userInfo().username, homeDir: os.homedir() });

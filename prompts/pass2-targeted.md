@@ -8,7 +8,7 @@ Cartographie issue de la passe 1:
 {{section}}
 
 Ne rapporte que des problèmes réels et vérifiés dans les fichiers lus. Réponds par un objet JSON:
-{"findings":[{"severity":"","category":"","rule":"kebab-case","title":"≤160 car.","file":"chemin/relatif","line":null,"explanation":"","fix":""}]}
+{"findings":[{"severity":"","category":"","rule":"kebab-case","title":"≤160 car.","file":"chemin/relatif","line":null,"explanation":"","fix":"","vulnerability":"faiblesse en une phrase","threat":"scénario d'attaque en une phrase","probability":"very-low|low|medium|high|very-high","impact":"very-low|low|medium|high|very-high"}]}
 Si rien n'est trouvé: {"findings":[]}.
 
 <!-- SECTION: secrets-deps -->

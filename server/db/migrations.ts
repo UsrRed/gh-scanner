@@ -47,4 +47,5 @@ CREATE INDEX idx_login_attempts_ip ON login_attempts(ip, ts);
 CREATE TABLE kv(key TEXT PRIMARY KEY, value TEXT NOT NULL);
 `,
   },
+  { version: 2, sql: 'ALTER TABLE findings ADD COLUMN risk_json TEXT;' },
 ];

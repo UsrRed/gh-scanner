@@ -1,7 +1,8 @@
-import type { Report, Severity } from '../../shared/types.js';
+import type { Report, RiskLevel, Severity } from '../../shared/types.js';
 import { redact } from '../redact/index.js';
 
 const SEVS: Severity[] = ['critical', 'high', 'medium', 'low', 'info'];
+const RISK_FR: Record<RiskLevel, string> = { 'very-low': 'très faible', low: 'faible', medium: 'moyenne', high: 'élevée', 'very-high': 'très élevée' };
 const cell = (s: string) => s.replace(/\|/g, '\\|').replace(/\n/g, ' ');
 
 export function buildMarkdown(r: Report): string {
@@ -21,6 +22,7 @@ export function buildMarkdown(r: Report): string {
   for (const f of r.findings) {
     L.push(`### [${f.severity}] ${f.title}`, '', `- Catégorie : ${f.category} (${f.rule}, source ${f.source})`,
       `- Fichier : ${f.file}${f.line != null ? `:${f.line}` : ''}`, '', f.explanation, '');
+    L.push(`- Matrice de risque : vulnérabilité — ${f.risk.vulnerability} ; menace — ${f.risk.threat} ; probabilité — ${RISK_FR[f.risk.probability]} ; impact — ${RISK_FR[f.risk.impact]}`, '');
     if (f.snippet) L.push('```', f.snippet.replace(/```/g, "'''"), '```', '');
     if (f.fix) L.push(`**Correctif :** ${f.fix}`, '');
   }

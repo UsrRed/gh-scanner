@@ -18,6 +18,9 @@ export const MappingOutput = z.object({
   riskZones: z.array(z.object({ path: z.string(), reason: z.string(), categories: z.array(categorySchema) })),
 });
 
+const riskLevel = z.enum(['very-low', 'low', 'medium', 'high', 'very-high']).optional().catch(() => undefined as 'low' | undefined);
+const riskText = z.string().min(1).max(300).optional().catch(() => undefined as string | undefined);
+
 export const ClaudeFinding = z.object({
   severity: severitySchema,
   category: categorySchema,
@@ -27,6 +30,10 @@ export const ClaudeFinding = z.object({
   line: z.number().int().positive().nullable(),
   explanation: z.string(),
   fix: z.string(),
+  vulnerability: riskText,
+  threat: riskText,
+  probability: riskLevel,
+  impact: riskLevel,
 });
 
 export const TargetedOutput = z.object({ findings: z.array(ClaudeFinding) });
