@@ -77,3 +77,4 @@ Bouton « Exporter en PDF » (window.print) + bloc @media print dans web/src/sty
 ## T33 — Matrice de risque
 Contrat modifié (additif) : `RiskLevel`, `RiskMatrix`, `Finding.risk` (shared/types.ts, docs/INTERFACES.md). Migration SQLite v2 (`findings.risk_json`, NULL ⇒ matrice dérivée à la lecture). Sortie Claude : champs optionnels `vulnerability/threat/probability/impact` (valeurs invalides ⇒ dérivation, `server/analysis/risk.ts`). Prompts VERSION 2. UI Rapport/Comparaison, export MD/JSON/PDF incluent la matrice.
 - 2026-10-22T12:07:18.306Z — T33 terminé (Matrice de risque (vulnérabilité / menace / probabilité / impact) pour chaque finding)
+- 2026-10-22T12:08:00.945Z — vérification finale OK — prêt à déployer
