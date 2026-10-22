@@ -30,6 +30,12 @@ export function ReportPage() {
   );
   const categories = useMemo(() => [...new Set((data?.findings ?? []).map((f) => f.category))].sort(), [data]);
 
+  useEffect(() => {
+    const openAll = () => document.querySelectorAll('details.finding').forEach((d) => d.setAttribute('open', ''));
+    window.addEventListener('beforeprint', openAll);
+    return () => window.removeEventListener('beforeprint', openAll);
+  }, []);
+
   if (!data && loading) return <LoadingState label="Chargement du rapport…" />;
   if (!data && error) return <ErrorState code={error.code} message={error.message} onRetry={reload} />;
   if (!data) return <EmptyState title="Rapport indisponible" />;
@@ -47,6 +53,7 @@ export function ReportPage() {
           {scan.previousScanId && <Link className="btn sm" to={`/compare?base=${scan.previousScanId}&head=${scan.id}`}>Comparer au précédent</Link>}
           <a className="btn sm" href={dl('md')} download>Export .md</a>
           <a className="btn sm" href={dl('json')} download>Export .json</a>
+          <button type="button" className="btn sm" onClick={() => window.print()}>Exporter en PDF</button>
         </div>}
       />
       {data.partial && <div className="err-box" role="status">Rapport partiel : le scan ne s'est pas terminé normalement ({scan.status}).</div>}

@@ -98,3 +98,14 @@ describe('ComparePage', () => {
     await screen.findByText('mismatch');
   });
 });
+
+describe('ReportPage PDF export', () => {
+  it('shows the PDF button and calls window.print', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => json(report)));
+    const print = vi.fn();
+    vi.stubGlobal('print', print);
+    at(<ReportPage />, '/scans/s1/report', '/scans/:id/report');
+    fireEvent.click(await screen.findByRole('button', { name: 'Exporter en PDF' }));
+    expect(print).toHaveBeenCalledTimes(1);
+  });
+});

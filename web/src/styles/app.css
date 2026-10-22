@@ -397,3 +397,22 @@ tr.blocked:hover td{background:#F2CBC6}
   .main{padding:var(--s4)}
   .page-h h2{font-size:22px}
 }
+
+/* Print / PDF export (report page) */
+@media print {
+  :root{color-scheme:light}
+  html,body,.app,.main{background:#fff!important;color:#000!important}
+  .app{display:block;min-height:0}
+  .nav,.page-h .btn,.page-h button,.page-h a,.filters,.pager,.pagination,.btn,button,aside a{display:none!important}
+  .main{max-width:none;padding:0;margin:0}
+  *{transition:none!important;animation:none!important;backdrop-filter:none!important;box-shadow:none!important}
+  .grid-main{display:block}
+  .finding,.verdict,.card{break-inside:avoid;page-break-inside:avoid;background:#fff!important}
+  .finding .detail{display:grid}
+  .finding.crit{border-left-color:#8b0000}
+  .finding.high{border-left-color:#b34700}
+  .finding.medium{border-left-color:#7a6200}
+  .finding.low,.finding.info{border-left-color:#555}
+  pre,.snip{white-space:pre-wrap;word-break:break-word;color:#000!important;background:#f4f4f4!important}
+  a{color:#000!important;text-decoration:none}
+}

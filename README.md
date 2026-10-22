@@ -96,7 +96,7 @@ Prérequis : Node.js ≥ 22, `git`, `gh` et `claude` (CLI) dans le `PATH`. Le se
 
 ## Utilisation
 
-Après installation et démarrage (`npm run start`, ou `docker compose up`), ouvrez `http://127.0.0.1:8417`, connectez GitHub et Claude depuis **Réglages**, puis lancez un scan depuis **Nouveau scan**. Le rapport est exportable en Markdown ou en JSON, sans données identifiantes.
+Après installation et démarrage (`npm run start`, ou `docker compose up`), ouvrez `http://127.0.0.1:8417`, connectez GitHub et Claude depuis **Réglages**, puis lancez un scan depuis **Nouveau scan**. Le rapport est exportable en Markdown ou en JSON, ou en PDF via le bouton « Exporter en PDF » (impression du navigateur, feuille de style dédiée, sans dépendance), sans données identifiantes.
 
 ## Tests
 
