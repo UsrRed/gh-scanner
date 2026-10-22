@@ -1142,6 +1142,52 @@
       "status": "done",
       "commitSha": "d60f7e44057ffc07add6572ed07088884be0c924",
       "worktreeDir": null
+    },
+    {
+      "taskKey": "T33",
+      "position": 32,
+      "title": "Matrice de risque (vulnérabilité / menace / probabilité / impact) pour chaque finding",
+      "description": "Aujourd'hui chaque finding n'expose qu'une sévérité (critical…info). Ajouter à chaque finding une matrice de risque structurée.\n\nContrat modifié (additif, à noter dans docs/INTERFACES.md et docs/PROGRESS.md dans le même commit) : dans `shared/types.ts`, ajouter `export type RiskLevel = 'very-low'|'low'|'medium'|'high'|'very-high'` et `export interface RiskMatrix { vulnerability: string; threat: string; probability: RiskLevel; impact: RiskLevel }`, puis `risk: RiskMatrix` sur `Finding`. `severity` est conservée (rétro-compatible).\n\nProduction :\n- Schéma zod de sortie Claude (module prompts/schémas) : champs `vulnerability`, `threat`, `probability`, `impact` ajoutés et demandés dans le prompt versionné des passes ciblées/synthèse. Si absents ou invalides, repli sur une dérivation déterministe depuis `category` + `severity` (vulnerability = titre/règle, threat = libellé par catégorie, probability/impact mappés depuis la sévérité). Le texte est masqué par `redact` comme le reste.\n- Findings locaux (analyse locale) : même dérivation déterministe, selon la catégorie et la règle.\n- Persistance : stocker la matrice en JSON dans la table des findings (migration SQLite, valeur par défaut dérivée pour les anciens scans, sans casser leurs rapports). Le fingerprint ne change pas.\n\nAffichage et export :\n- Page Rapport (et Comparaison) : dans chaque finding, un bloc « Matrice de risque » avec 4 cellules Vulnérabilité / Menace / Probabilité / Impact, probabilité et impact en badges colorés avec les tokens du thème existant (aucune ressource externe). Libellés en français.\n- Export Markdown et JSON, ainsi que l'impression PDF (T32), incluent la matrice.\n\nAjouter ou mettre à jour les tests unitaires de dérivation, de schéma et de rapport/export.",
+      "filesHint": [
+        "shared/types.ts",
+        "server/analysis/local.ts",
+        "server/analysis/schemas.ts",
+        "server/analysis/prompts.ts",
+        "server/db/migrations.ts",
+        "server/db/findings.ts",
+        "server/report/export.ts",
+        "web/src/pages/Report.tsx",
+        "web/src/pages/Compare.tsx",
+        "docs/INTERFACES.md",
+        "docs/PROGRESS.md"
+      ],
+      "writes": [
+        "shared/types.ts",
+        "server/analysis/local.ts",
+        "server/analysis/schemas.ts",
+        "server/analysis/prompts.ts",
+        "server/db/migrations.ts",
+        "server/db/findings.ts",
+        "server/report/export.ts",
+        "web/src/pages/Report.tsx",
+        "web/src/pages/Compare.tsx",
+        "docs/INTERFACES.md",
+        "docs/PROGRESS.md"
+      ],
+      "acceptance": [
+        "Sur la page d'un rapport, chaque finding affiche un bloc avec les 4 champs Vulnérabilité, Menace, Probabilité, Impact (probabilité et impact en 5 niveaux, pas seulement faible/élevé)",
+        "Un finding local (ex. secret détecté) et un finding Claude sans champs de risque reçoivent une matrice dérivée cohérente avec leur catégorie et sévérité",
+        "Les anciens scans déjà en base s'affichent sans erreur avec une matrice dérivée",
+        "Les exports Markdown, JSON et l'impression PDF contiennent la matrice, sans donnée identifiante (masquage appliqué)",
+        "Le schéma zod rejette un niveau hors des 5 valeurs et bascule sur la dérivation; les tests unitaires et la commande de test existante passent",
+        "docs/INTERFACES.md est mis à jour et le changement de contrat est noté dans docs/PROGRESS.md"
+      ],
+      "dependsOn": [],
+      "after": [],
+      "phase": "core",
+      "status": "pending",
+      "commitSha": null,
+      "worktreeDir": null
     }
   ]
 }
