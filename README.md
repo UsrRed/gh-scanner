@@ -2,6 +2,8 @@
 
 Scanner de dépôts GitHub assisté par Claude : clone un dépôt dans un bac à sable, l'analyse (analyses locales + sessions Claude en lecture seule), puis produit un rapport (score, verdict, constats). Voir `docs/SPEC.md` et `docs/ARCHITECTURE.md`. Pour le déploiement pas à pas, voir `docs/DEPLOY.md`.
 
+> Ce projet a été généré de bout en bout avec [**pj-gen**](https://github.com/UsrRed/pj-gen), mon orchestrateur qui pilote Claude Code en mode headless (cadrage, spécification, découpage en tâches, implémentation, tests).
+
 ## Prérequis
 
 - **Node.js ≥ 22** et npm (pour l'installation sans Docker, le build et les tests).
